@@ -1,0 +1,134 @@
+{
+  "variables": [
+    {
+      "name": "X",
+      "type": "int"
+    },
+    {
+      "name": "Y",
+      "type": "int"
+    }
+  ],
+  "threads": [
+    [
+      {
+        "id": 1,
+        "type": "input",
+        "variable": "X",
+        "next": 2
+      },
+      {
+        "id": 2,
+        "type": "while",
+        "expression": "X < 6",
+        "body": 3,
+        "next": 10
+      },
+      {
+        "id": 3,
+        "type": "assign",
+        "expression": "X = X + 1",
+        "next": 4
+      },
+      {
+        "id": 4,
+        "type": "condition",
+        "expression": "X < 10",
+        "trueBranch": 5,
+        "falseBranch": 7
+      },
+      {
+        "id": 5,
+        "type": "assign",
+        "expression": "Y = X * 2",
+        "next": 6
+      },
+      {
+        "id": 6,
+        "type": "print",
+        "expression": "Y",
+        "next": 8
+      },
+      {
+        "id": 7,
+        "type": "print",
+        "expression": "\"Condition was false\"",
+        "next": 8
+      },
+      {
+        "id": 8,
+        "type": "print",
+        "expression": "\"Condition was true\"",
+        "next": 9
+      },
+      {
+        "id": 9,
+        "type": "end_condition",
+        "next": 10
+      },
+      {
+        "id": 10,
+        "type": "end_condition",
+        "next": 11
+      },
+      {
+        "id": 11,
+        "type": "print",
+        "expression": "\"Loop ended\"",
+        "next": 12
+      },
+      {
+        "id": 12,
+        "type": "end"
+      }
+    ],
+    [
+      {
+        "id": 1,
+        "type": "assign",
+        "expression": "X = 5",
+        "next": 2
+      },
+      {
+        "id": 2,
+        "type": "condition",
+        "expression": "X < 10",
+        "trueBranch": 3,
+        "falseBranch": null
+      },
+      {
+        "id": 3,
+        "type": "assign",
+        "expression": "Y = X * 2",
+        "next": 4
+      },
+      {
+        "id": 4,
+        "type": "print",
+        "expression": "Y",
+        "next": 5
+      },
+      {
+        "id": 5,
+        "type": "print",
+        "expression": "\"Condition was true\"",
+        "next": 7
+      },
+      {
+        "id": 6,
+        "type": "print",
+        "expression": "\"Condition was false\"",
+        "next": 7
+      },
+      {
+        "id": 7,
+        "type": "end_condition",
+        "next": 8
+      },
+      {
+        "id": 8,
+        "type": "end"
+      }
+    ]
+  ]
+}

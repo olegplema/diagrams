@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'org.plema'
+version = '1.0-SNAPSHOT'
+def launcherClassName = 'io.vertx.core.Launcher'
+def mainVerticleName = 'org.plema.vertx.MainVerticle'
+
+application {
+    mainClass = launcherClassName
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.vertx:vertx-web'
+    implementation(platform("io.vertx:vertx-stack-depchain:4.5.13"))
+    implementation 'io.vertx:vertx-core:4.5.13'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaExec).configureEach {
+    args = [
+            "run", mainVerticleName,
+            "--launcher-class=${launcherClassName}",
+    ]
+}
