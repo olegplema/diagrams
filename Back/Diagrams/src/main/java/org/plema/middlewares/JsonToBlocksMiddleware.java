@@ -1,4 +1,4 @@
-package org.plema.middleware;
+package org.plema.middlewares;
 
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
@@ -27,7 +27,7 @@ public class JsonToBlocksMiddleware implements Handler<RoutingContext> {
             String type = variableJson.getString("type");
             String name = variableJson.getString("name");
 
-            variables.add(new Variable(type, name));
+            variables.add(new Variable(name, type));
         });
 
         BlockFactory blockFactory = new BlockFactory(variables);

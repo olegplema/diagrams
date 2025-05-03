@@ -11,8 +11,14 @@ public class ExpressionService {
     );
 
     public static Value evaluateExpression(String expression, Map<String, Value> variables) {
+        // Handle variable references in expressions
+        for (Map.Entry<String, Value> entry : variables.entrySet()) {
+            // Use word boundaries to ensure we match complete variable names
+            expression = expression.replaceAll("\\b" + entry.getKey() + "\\b", entry.getValue().value().toString());
+        }
+
         List<String> rpn = toReversePolishNotation(expression, variables);
-        return evaluateRPN(rpn);
+        return evaluateRPN(rpn, variables);
     }
 
     private static List<String> toReversePolishNotation(String expression, Map<String, Value> variables) {
@@ -27,7 +33,8 @@ public class ExpressionService {
             if (isNumber(token) || variables.containsKey(token)) {
                 output.add(token);
             } else if (OPERATOR_PRECEDENCE.containsKey(token)) {
-                while (!operators.isEmpty() && OPERATOR_PRECEDENCE.getOrDefault(operators.peek(), 0) >= OPERATOR_PRECEDENCE.get(token)) {
+                while (!operators.isEmpty() && !operators.peek().equals("(") &&
+                        OPERATOR_PRECEDENCE.getOrDefault(operators.peek(), 0) >= OPERATOR_PRECEDENCE.get(token)) {
                     output.add(operators.pop());
                 }
                 operators.push(token);
@@ -37,7 +44,9 @@ public class ExpressionService {
                 while (!operators.isEmpty() && !operators.peek().equals("(")) {
                     output.add(operators.pop());
                 }
-                operators.pop();
+                if (!operators.isEmpty() && operators.peek().equals("(")) {
+                    operators.pop(); // Remove the left parenthesis
+                }
             }
         }
 
@@ -48,12 +57,15 @@ public class ExpressionService {
         return output;
     }
 
-    private static Value evaluateRPN(List<String> rpn) {
+    private static Value evaluateRPN(List<String> rpn, Map<String, Value> variables) {
         Deque<Value> stack = new ArrayDeque<>();
 
         for (String token : rpn) {
             if (isNumber(token)) {
                 stack.push(new Value(Double.parseDouble(token), "double"));
+            } else if (variables.containsKey(token)) {
+                // Push variable value onto stack
+                stack.push(variables.get(token));
             } else if (OPERATOR_PRECEDENCE.containsKey(token)) {
                 Value b = stack.pop();
                 Value a = stack.pop();
@@ -65,20 +77,32 @@ public class ExpressionService {
 
         return stack.pop();
     }
+
     public static boolean evaluateCondition(String condition, Map<String, Value> variables) {
-        String[] parts = condition.split("(<=|>=|==|!=|<|>)");
-        if (parts.length != 2) {
-            throw new IllegalArgumentException("Invalid condition: " + condition);
+        // Find the operator in the condition
+        String operator = findOperator(condition);
+        if (operator == null) {
+            throw new IllegalArgumentException("Invalid condition (no operator found): " + condition);
         }
-        String left = parts[0].trim();
-        String right = parts[1].trim();
-        String operator = condition.replace(left, "").replace(right, "").trim();
 
-        Value leftValue = variables.getOrDefault(left, new Value(Double.parseDouble(left),"double"));
-        Value rightValue = variables.getOrDefault(right, new Value(Double.parseDouble(right),"double"));
+        // Split by the operator
+        String[] parts = condition.split(escapeRegex(operator), 2);
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid condition format: " + condition);
+        }
 
-        double leftNum = Double.parseDouble(leftValue.value().toString());
-        double rightNum = Double.parseDouble(rightValue.value().toString());
+        String leftExpr = parts[0].trim();
+        String rightExpr = parts[1].trim();
+
+        // Handle variable references or literals for left side
+        Value leftValue = getValue(variables, leftExpr);
+
+        // Handle variable references or literals for right side
+        Value rightValue = getValue(variables, rightExpr);
+
+        // Compare values based on operator
+        double leftNum = leftValue.asDouble();
+        double rightNum = rightValue.asDouble();
 
         return switch (operator) {
             case "==" -> leftNum == rightNum;
@@ -89,6 +113,36 @@ public class ExpressionService {
             case ">=" -> leftNum >= rightNum;
             default -> throw new IllegalArgumentException("Invalid operator: " + operator);
         };
+    }
+
+    private static Value getValue(Map<String, Value> variables, String leftExpr) {
+        Value leftValue;
+        if (variables.containsKey(leftExpr)) {
+            leftValue = variables.get(leftExpr);
+        } else if (isNumber(leftExpr)) {
+            leftValue = isInteger(leftExpr) ?
+                    new Value(Integer.parseInt(leftExpr), "int") :
+                    new Value(Double.parseDouble(leftExpr), "double");
+        } else {
+            // Try to evaluate as an expression
+            leftValue = evaluateExpression(leftExpr, variables);
+        }
+        return leftValue;
+    }
+
+    private static String findOperator(String condition) {
+        if (condition.contains("<=")) return "<=";
+        if (condition.contains(">=")) return ">=";
+        if (condition.contains("==")) return "==";
+        if (condition.contains("!=")) return "!=";
+        if (condition.contains("<")) return "<";
+        if (condition.contains(">")) return ">";
+        return null;
+    }
+
+    private static String escapeRegex(String operator) {
+        // Escape special regex characters
+        return operator.replaceAll("([\\[\\]{}()*+?.\\\\^$|])", "\\\\$1");
     }
 
     private static Value applyOperator(Value a, Value b, String operator) {
@@ -123,4 +177,15 @@ public class ExpressionService {
             return false;
         }
     }
+
+    private static boolean isInteger(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 }
+
+// Value record to store typed values

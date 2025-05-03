@@ -1,5 +1,7 @@
 package org.plema.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import org.plema.CodeRunner;
@@ -30,22 +32,24 @@ public class DiagramController {
                 .end(JsonObject.mapFrom(new MessageResponse("Code generated")).encode());
     }
 
-//    public void runDiagram(RoutingContext context) {
-//        try {
-//            codeRunner.runBlocks();
-//            System.out.println(diagramService.generateCode(diagram));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            context.response()
-//                    .setStatusCode(500)
-//                    .putHeader("Content-Type", "application/json")
-//                    .end(JsonObject.mapFrom(new MessageResponse("Something went wrong")).encode());
-//        }
-//
-//        context.response()
-//                .setStatusCode(201)
-//                .putHeader("Content-Type", "application/json")
-//                .end(JsonObject.mapFrom(new MessageResponse("Code generated")).encode());
-//
-//    }
+    public void runDiagram(RoutingContext context) {
+        try {
+            JsonNode blocks = new ObjectMapper().readTree(context.body().asString());
+            JsonNode threads = blocks.get("threads");
+            JsonNode firstThread = threads.get(0);
+            codeRunner.runBlocks(firstThread);
+        } catch (Exception e) {
+            e.printStackTrace();
+            context.response()
+                    .setStatusCode(500)
+                    .putHeader("Content-Type", "application/json")
+                    .end(JsonObject.mapFrom(new MessageResponse("Something went wrong")).encode());
+        }
+
+        context.response()
+                .setStatusCode(201)
+                .putHeader("Content-Type", "application/json")
+                .end(JsonObject.mapFrom(new MessageResponse("Code generated")).encode());
+
+    }
 }

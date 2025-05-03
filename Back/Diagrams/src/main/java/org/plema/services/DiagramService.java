@@ -3,9 +3,7 @@ package org.plema.services;
 import org.plema.models.AbstractBlock;
 import org.plema.models.Diagram;
 import org.plema.models.Variable;
-import org.plema.models.Visitable;
 import org.plema.visitor.BlocksCodeGenerator;
-import org.plema.visitor.Visitor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +14,6 @@ public class DiagramService {
     public String generateCode(Diagram diagram) {
         StringBuilder code = new StringBuilder();
         Map<Integer, AbstractBlock> blockMap = new HashMap<>();
-
         BlocksCodeGenerator visitor = new BlocksCodeGenerator(code, blockMap);
 
         code.append("import java.util.Scanner;\n");
@@ -68,5 +65,7 @@ public class DiagramService {
             blocksCodeGenerator.generateConditionLevel();
             block.doVisitor(blocksCodeGenerator);
         }
+
+        blocksCodeGenerator.finishThread();
     }
 }

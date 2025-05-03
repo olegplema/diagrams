@@ -51,8 +51,8 @@ public class BlocksCodeGenerator implements Visitor {
 
         conditionLevel++;
 
-        int trueBranchId = conditionBlock.getTrueBranch();
-        int falseBranchId = conditionBlock.getFalseBranch();
+        Integer trueBranchId = conditionBlock.getTrueBranch();
+        Integer falseBranchId = conditionBlock.getFalseBranch();
 
         if (blockMap.containsKey(trueBranchId)) {
             currentBlockId = trueBranchId;
@@ -65,7 +65,6 @@ public class BlocksCodeGenerator implements Visitor {
         } else {
             code.append("                }\n");
         }
-
     }
 
     @Override
@@ -85,7 +84,7 @@ public class BlocksCodeGenerator implements Visitor {
 
     @Override
     public void doInput(InputBlock inputBlock) {
-        code.append("                ").append(inputBlock.getVariable()).append(" = scanner.nextInt();\n");
+        code.append("                ").append(inputBlock.getVariable().getName()).append(" = scanner.nextInt();\n");
         currentBlockId = inputBlock.getNext();
     }
 
@@ -96,6 +95,12 @@ public class BlocksCodeGenerator implements Visitor {
                 .append(" ")
                 .append(variable.getName())
                 .append(";\n");
+    }
+
+    public void finishThread() {
+        blockMap.clear();
+        currentBlockId = 1;
+        conditionLevel = 0;
     }
 
     private boolean isEndBlock(int blockId) {

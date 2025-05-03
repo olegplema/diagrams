@@ -21,7 +21,7 @@ public class CodeRunner {
 
         while (blockMap.containsKey(currentBlockId)) {
             JsonNode block = blockMap.get(currentBlockId);
-            switch (BlockType.valueOf(block.get("type").asText())) {
+            switch (BlockType.valueOf(block.get("type").asText().toUpperCase())) {
                 case ASSIGN -> {
                     String expression = block.get("expression").asText();
                     String[] parts = expression.split("=", 2);
@@ -37,9 +37,9 @@ public class CodeRunner {
                     currentBlockId = block.get("next").asInt();
                 }
                 case INPUT -> {
-                    String varName = block.get("varName").asText();
-                    System.out.print("Enter value for " + varName + ": ");
-                    String input = scanner.nextLine();
+                    String varName = block.get("variable").asText();
+                    System.out.println("Enter value for " + varName + ": ");
+                    String input = "10.0";//scanner.nextLine();
                     Value value = isInteger(input) ? new Value(Integer.parseInt(input), "int") :
                             isDouble(input) ? new Value(Double.parseDouble(input), "double") :
                                     new Value("string", input);
