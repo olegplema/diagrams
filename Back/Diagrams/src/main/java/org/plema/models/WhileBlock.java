@@ -11,8 +11,8 @@ public class WhileBlock extends ExpressionBlock {
     }
 
     @Override
-    public void doVisitor(Visitor v) {
-        v.doWhile(this);
+    public Integer doVisitor(Visitor v) {
+        return v.doWhile(this);
     }
 
     public Integer getBody() {

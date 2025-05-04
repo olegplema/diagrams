@@ -1,12 +1,12 @@
 package org.plema.models;
 
-import org.plema.visitor.Visitor;
+import org.plema.DataType;
 
-public class Variable implements Visitable {
+public class Variable {
     private final String name;
-    private final String type;
+    private final DataType type;
 
-    public Variable(String name, String type) {
+    public Variable(String name, DataType type) {
         this.name = name;
         this.type = type;
     }
@@ -20,25 +20,20 @@ public class Variable implements Visitable {
         return name;
     }
 
-    public String getType() {
+    public DataType getType() {
         return type;
-    }
-
-    @Override
-    public void doVisitor(Visitor v) {
-        v.doVariable(this);
     }
 
     public static class Builder {
         private String name;
-        private String type;
+        private DataType type;
 
         public Builder name(String name) {
             this.name = name;
             return this;
         }
 
-        public Builder type(String type) {
+        public Builder type(DataType type) {
             this.type = type;
             return this;
         }

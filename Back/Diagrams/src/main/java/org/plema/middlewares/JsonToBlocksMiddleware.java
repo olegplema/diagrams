@@ -4,6 +4,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import org.plema.DataType;
 import org.plema.models.AbstractBlock;
 import org.plema.models.BlockFactory;
 import org.plema.models.Diagram;
@@ -27,7 +28,7 @@ public class JsonToBlocksMiddleware implements Handler<RoutingContext> {
             String type = variableJson.getString("type");
             String name = variableJson.getString("name");
 
-            variables.add(new Variable(name, type));
+            variables.add(new Variable(name, DataType.valueOf(type.toUpperCase())));
         });
 
         BlockFactory blockFactory = new BlockFactory(variables);

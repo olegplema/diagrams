@@ -1,5 +1,6 @@
 package org.plema.services;
 
+import org.plema.DataType;
 import org.plema.Value;
 
 import java.util.*;
@@ -11,9 +12,7 @@ public class ExpressionService {
     );
 
     public static Value evaluateExpression(String expression, Map<String, Value> variables) {
-        // Handle variable references in expressions
         for (Map.Entry<String, Value> entry : variables.entrySet()) {
-            // Use word boundaries to ensure we match complete variable names
             expression = expression.replaceAll("\\b" + entry.getKey() + "\\b", entry.getValue().value().toString());
         }
 
@@ -45,7 +44,7 @@ public class ExpressionService {
                     output.add(operators.pop());
                 }
                 if (!operators.isEmpty() && operators.peek().equals("(")) {
-                    operators.pop(); // Remove the left parenthesis
+                    operators.pop();
                 }
             }
         }
@@ -62,9 +61,8 @@ public class ExpressionService {
 
         for (String token : rpn) {
             if (isNumber(token)) {
-                stack.push(new Value(Double.parseDouble(token), "double"));
+                stack.push(new Value(Double.parseDouble(token), DataType.DOUBLE));
             } else if (variables.containsKey(token)) {
-                // Push variable value onto stack
                 stack.push(variables.get(token));
             } else if (OPERATOR_PRECEDENCE.containsKey(token)) {
                 Value b = stack.pop();
@@ -79,13 +77,11 @@ public class ExpressionService {
     }
 
     public static boolean evaluateCondition(String condition, Map<String, Value> variables) {
-        // Find the operator in the condition
         String operator = findOperator(condition);
         if (operator == null) {
             throw new IllegalArgumentException("Invalid condition (no operator found): " + condition);
         }
 
-        // Split by the operator
         String[] parts = condition.split(escapeRegex(operator), 2);
         if (parts.length != 2) {
             throw new IllegalArgumentException("Invalid condition format: " + condition);
@@ -94,13 +90,10 @@ public class ExpressionService {
         String leftExpr = parts[0].trim();
         String rightExpr = parts[1].trim();
 
-        // Handle variable references or literals for left side
         Value leftValue = getValue(variables, leftExpr);
 
-        // Handle variable references or literals for right side
         Value rightValue = getValue(variables, rightExpr);
 
-        // Compare values based on operator
         double leftNum = leftValue.asDouble();
         double rightNum = rightValue.asDouble();
 
@@ -121,8 +114,8 @@ public class ExpressionService {
             leftValue = variables.get(leftExpr);
         } else if (isNumber(leftExpr)) {
             leftValue = isInteger(leftExpr) ?
-                    new Value(Integer.parseInt(leftExpr), "int") :
-                    new Value(Double.parseDouble(leftExpr), "double");
+                    new Value(Integer.parseInt(leftExpr), DataType.INT) :
+                    new Value(Double.parseDouble(leftExpr), DataType.DOUBLE);
         } else {
             // Try to evaluate as an expression
             leftValue = evaluateExpression(leftExpr, variables);
@@ -155,7 +148,7 @@ public class ExpressionService {
                 case "/" -> result = a.asInt() / b.asInt();
                 default -> throw new IllegalArgumentException("Unknown operator: " + operator);
             }
-            return new Value(result, "int");
+            return new Value(result, DataType.INT);
         } else {
             double result;
             switch (operator) {
@@ -165,7 +158,7 @@ public class ExpressionService {
                 case "/" -> result = a.asDouble() / b.asDouble();
                 default -> throw new IllegalArgumentException("Unknown operator: " + operator);
             }
-            return new Value(result, "double");
+            return new Value(result, DataType.DOUBLE);
         }
     }
 
@@ -187,5 +180,3 @@ public class ExpressionService {
         }
     }
 }
-
-// Value record to store typed values

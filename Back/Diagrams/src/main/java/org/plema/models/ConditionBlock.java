@@ -13,8 +13,8 @@ public class ConditionBlock extends ExpressionBlock {
     }
 
     @Override
-    public void doVisitor(Visitor v) {
-        v.doCondition(this);
+    public Integer doVisitor(Visitor v) {
+        return v.doCondition(this);
     }
 
     public Integer getTrueBranch() {

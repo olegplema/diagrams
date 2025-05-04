@@ -1,12 +1,12 @@
 package org.plema;
 
-public record Value(Object value, String type) {
+public record Value(Object value, DataType type) {
     public boolean isInt() {
-        return "int".equals(type);
+        return DataType.INT.getName().equals(type.getName());
     }
 
     public boolean isDouble() {
-        return "double".equals(type);
+        return DataType.DOUBLE.getName().equals(type.getName());
     }
 
     public int asInt() {

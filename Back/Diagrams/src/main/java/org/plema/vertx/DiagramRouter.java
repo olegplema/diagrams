@@ -23,6 +23,7 @@ public class DiagramRouter {
 
         router.post("/run")
                 .handler(BodyHandler.create())
+                .handler(new JsonToBlocksMiddleware())
                 .handler(diagramController::runDiagram);
 
         return router;

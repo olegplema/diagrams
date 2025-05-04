@@ -6,11 +6,10 @@ import java.util.*;
 
 public class BlocksCodeGenerator implements Visitor {
 
-    private final StringBuilder code;
     private final Map<Integer, AbstractBlock> blockMap;
+    private final StringBuilder code;
 
     private Integer conditionLevel = 0;
-    private Integer currentBlockId = 1;
     private final Stack<ConditionInfo> conditionStack = new Stack<>();
     private final List<Integer> loopBlockIds = new ArrayList<>();
 
@@ -29,40 +28,27 @@ public class BlocksCodeGenerator implements Visitor {
     }
 
     public BlocksCodeGenerator(StringBuilder stringBuilder, Map<Integer, AbstractBlock> blockMap) {
-        this.code = stringBuilder;
         this.blockMap = blockMap;
+        this.code = stringBuilder;
     }
 
-    public void addBlock(AbstractBlock block) {
-        blockMap.put(block.getId(), block);
-    }
-
-    public AbstractBlock getCurrentBlock() {
-        return blockMap.get(currentBlockId);
-    }
-
-    public boolean hasCurrentBlock() {
-        return blockMap.containsKey(currentBlockId);
-    }
-
-    public void generateConditionLevel() {
+    @Override
+    public Integer doPrint(PrintBlock printBlock) {
         code.append("    ".repeat(Math.max(0, conditionLevel)));
-    }
-
-    @Override
-    public void doPrint(PrintBlock printBlock) {
         code.append("                System.out.println(").append(printBlock.getExpression()).append(");\n");
-        currentBlockId = printBlock.getNext();
+        return printBlock.getNext();
     }
 
     @Override
-    public void doAssign(AssignBlock assignBlock) {
+    public Integer doAssign(AssignBlock assignBlock) {
+        code.append("    ".repeat(Math.max(0, conditionLevel)));
         code.append("                ").append(assignBlock.getExpression()).append(";\n");
-        currentBlockId = assignBlock.getNext();
+        return assignBlock.getNext();
     }
 
     @Override
-    public void doCondition(ConditionBlock conditionBlock) {
+    public Integer doCondition(ConditionBlock conditionBlock) {
+        code.append("    ".repeat(Math.max(0, conditionLevel)));
         code.append("                if (").append(conditionBlock.getExpression()).append(") {\n");
 
         conditionLevel++;
@@ -79,25 +65,27 @@ public class BlocksCodeGenerator implements Visitor {
                 endId
         ));
 
-        currentBlockId = trueBranchId;
+        return trueBranchId;
     }
 
     @Override
-    public void doWhile(WhileBlock whileBlock) {
+    public Integer doWhile(WhileBlock whileBlock) {
+        code.append("    ".repeat(Math.max(0, conditionLevel)));
         if (!loopBlockIds.contains(whileBlock.getId())) {
             code.append("                while (").append(whileBlock.getExpression()).append(") {\n");
             loopBlockIds.add(whileBlock.getId());
             conditionLevel++;
-            currentBlockId = whileBlock.getBody();
+            return whileBlock.getBody();
         } else {
             conditionLevel--;
             loopBlockIds.remove(whileBlock.getId());
-            currentBlockId = whileBlock.getNext();
+            return whileBlock.getNext();
         }
     }
 
     @Override
-    public void doEnd(EndBlock endBlock) {
+    public Integer doEnd(EndBlock endBlock) {
+        code.append("    ".repeat(Math.max(0, conditionLevel)));
         conditionLevel--;
         code.delete(code.length() - 4, code.length());
 
@@ -106,38 +94,22 @@ public class BlocksCodeGenerator implements Visitor {
 
             if (blockMap.containsKey(info.falseBranchId)) {
                 code.append("                } else {\n");
-                currentBlockId = info.falseBranchId;
                 conditionLevel++;
-                return;
+                return info.falseBranchId;
             }
             code.append("                }\n");
         } else {
             code.append("                }\n");
         }
 
-        currentBlockId = endBlock.getNext();
+        return endBlock.getNext();
     }
 
     @Override
-    public void doInput(InputBlock inputBlock) {
+    public Integer doInput(InputBlock inputBlock) {
+        code.append("    ".repeat(Math.max(0, conditionLevel)));
         code.append("                ").append(inputBlock.getVariable().getName()).append(" = scanner.nextInt();\n");
-        currentBlockId = inputBlock.getNext();
-    }
-
-    @Override
-    public void doVariable(Variable variable) {
-        code.append("    static ")
-                .append(variable.getType())
-                .append(" ")
-                .append(variable.getName())
-                .append(";\n");
-    }
-
-    public void finishThread() {
-        blockMap.clear();
-        currentBlockId = 1;
-        conditionLevel = 0;
-        conditionStack.clear();
+        return inputBlock.getNext();
     }
 
     private Integer findEndBlockFor(Integer blockId) {

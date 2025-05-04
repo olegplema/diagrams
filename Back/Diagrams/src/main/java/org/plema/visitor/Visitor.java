@@ -3,11 +3,10 @@ package org.plema.visitor;
 import org.plema.models.*;
 
 public interface Visitor {
-    void doPrint(PrintBlock printBlock);
-    void doAssign(AssignBlock assignBlock);
-    void doCondition(ConditionBlock conditionBlock);
-    void doWhile(WhileBlock whileBlock);
-    void doEnd(EndBlock endBlock);
-    void doInput(InputBlock inputBlock);
-    void doVariable(Variable variable);
+    Integer doPrint(PrintBlock printBlock);
+    Integer doAssign(AssignBlock assignBlock);
+    Integer doCondition(ConditionBlock conditionBlock);
+    Integer doWhile(WhileBlock whileBlock);
+    Integer doEnd(EndBlock endBlock);
+    Integer doInput(InputBlock inputBlock);
 }

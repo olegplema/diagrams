@@ -6,22 +6,24 @@ import org.plema.models.Variable;
 import org.plema.visitor.BlocksCodeGenerator;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class DiagramService {
+public class GenerateCodeService extends AbstractDiagramService {
 
     public String generateCode(Diagram diagram) {
         StringBuilder code = new StringBuilder();
         Map<Integer, AbstractBlock> blockMap = new HashMap<>();
-        BlocksCodeGenerator visitor = new BlocksCodeGenerator(code, blockMap);
 
         code.append("import java.util.Scanner;\n");
         code.append("import java.util.concurrent.locks.ReentrantLock;\n\n");
         code.append("public class FlowchartThreads {\n");
 
         for (Variable variable : diagram.variables()) {
-            variable.doVisitor(visitor);
+            code.append("    static ")
+                    .append(variable.getType().getName())
+                    .append(" ")
+                    .append(variable.getName())
+                    .append(";\n");
         }
 
         code.append("    static final Scanner scanner = new Scanner(System.in);\n");
@@ -35,7 +37,8 @@ public class DiagramService {
             code.append("    static class ").append(threadName).append(" extends Thread {\n");
             code.append("        public void run() {\n");
             code.append("            try {\n");
-            generateBlocks(thread, visitor);
+            BlocksCodeGenerator blocksGenerator = new BlocksCodeGenerator(code, blockMap);
+            executeBlocks(thread, blockMap, blocksGenerator);
             code.append("            } catch (Throwable t) {\n");
             code.append("                System.err.println(t);\n");
             code.append("            }\n");
@@ -55,17 +58,4 @@ public class DiagramService {
         return code.toString();
     }
 
-    private void generateBlocks(List<AbstractBlock> blocks, BlocksCodeGenerator blocksCodeGenerator) {
-        for (AbstractBlock block : blocks) {
-            blocksCodeGenerator.addBlock(block);
-        }
-
-        while (blocksCodeGenerator.hasCurrentBlock()) {
-            AbstractBlock block = blocksCodeGenerator.getCurrentBlock();
-            blocksCodeGenerator.generateConditionLevel();
-            block.doVisitor(blocksCodeGenerator);
-        }
-
-        blocksCodeGenerator.finishThread();
-    }
 }

@@ -6,8 +6,6 @@ import org.plema.services.ExpressionService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CodeRunner {
     public void runBlocks(JsonNode blocks) {
@@ -17,7 +15,6 @@ public class CodeRunner {
             blockMap.put(block.get("id").asInt(), block);
         }
         int currentBlockId = 1;
-        Scanner scanner = new Scanner(System.in);
 
         while (blockMap.containsKey(currentBlockId)) {
             JsonNode block = blockMap.get(currentBlockId);
@@ -39,10 +36,10 @@ public class CodeRunner {
                 case INPUT -> {
                     String varName = block.get("variable").asText();
                     System.out.println("Enter value for " + varName + ": ");
-                    String input = "10.0";//scanner.nextLine();
-                    Value value = isInteger(input) ? new Value(Integer.parseInt(input), "int") :
-                            isDouble(input) ? new Value(Double.parseDouble(input), "double") :
-                                    new Value("string", input);
+                    String input = "5";//scanner.nextLine();
+                    Value value = isInteger(input) ? new Value(Integer.parseInt(input), DataType.INT) :
+                            isDouble(input) ? new Value(Double.parseDouble(input), DataType.DOUBLE) :
+                                    new Value(input, DataType.STRING);
                     variables.put(varName, value);
                     currentBlockId = block.get("next").asInt();
                 }
@@ -67,34 +64,56 @@ public class CodeRunner {
     }
 
     private String replaceVariablesWithValues(String expression, Map<String, Value> variables) {
-        String regex = "(?<!\")\\b[A-Za-z_][A-Za-z0-9_]*\\b(?!\")";
-
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(expression);
-
         StringBuilder result = new StringBuilder();
+        boolean inQuotes = false;
 
-        while (matcher.find()) {
-            String variableName = matcher.group();
-            Value variableValue = variables.get(variableName);
+        for (int i = 0; i < expression.length(); i++) {
+            char c = expression.charAt(i);
 
-            if (variableValue == null) {
-                throw new IllegalArgumentException("Variable " + variableName + " not found");
+            if (c == '"') {
+                inQuotes = !inQuotes;
+                result.append(c);
+                continue;
             }
 
-            String replacement = getValueAsString(variableValue);
-            matcher.appendReplacement(result, replacement);
+            if (inQuotes) {
+                result.append(c);
+                continue;
+            }
+
+            if (Character.isLetterOrDigit(c) || c == '_') {
+                if (i == 0 || !(Character.isLetterOrDigit(expression.charAt(i-1)) || expression.charAt(i-1) == '_')) {
+                    int start = i;
+
+                    while (i < expression.length() &&
+                            (Character.isLetterOrDigit(expression.charAt(i)) || expression.charAt(i) == '_')) {
+                        i++;
+                    }
+
+                    String variableName = expression.substring(start, i);
+                    i--;
+
+                    Value variableValue = variables.get(variableName);
+                    if (variableValue != null) {
+                        result.append(getValueAsString(variableValue));
+                    } else {
+                        result.append(variableName);
+                    }
+                } else {
+                    result.append(c);
+                }
+            } else {
+                result.append(c);
+            }
         }
 
-        matcher.appendTail(result);
         return result.toString();
     }
 
     private String getValueAsString(Value value) {
         return switch (value.type()) {
-            case "int", "double" -> String.valueOf(value.value());
-            case "string" -> "\"" + value.value() + "\"";
-            default -> throw new IllegalArgumentException("Unknown value type: " + value.value());
+            case DataType.INT, DataType.DOUBLE -> String.valueOf(value.value());
+            case DataType.STRING -> "\"" + value.value() + "\"";
         };
     }
 
@@ -114,9 +133,5 @@ public class CodeRunner {
         } catch (NumberFormatException e) {
             return false;
         }
-    }
-
-    private static boolean isString(String str) {
-        return !isInteger(str) && !isDouble(str);
     }
 }

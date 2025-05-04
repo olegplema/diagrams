@@ -8,8 +8,8 @@ public class AssignBlock extends ExpressionBlock{
     }
 
     @Override
-    public void doVisitor(Visitor v) {
-        v.doAssign(this);
+    public Integer doVisitor(Visitor v) {
+        return v.doAssign(this);
     }
 
     public static class Builder extends ExpressionBuilder<Builder> {

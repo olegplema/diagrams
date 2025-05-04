@@ -8,8 +8,8 @@ public class PrintBlock extends ExpressionBlock {
     }
 
     @Override
-    public void doVisitor(Visitor v) {
-        v.doPrint(this);
+    public Integer doVisitor(Visitor v) {
+        return v.doPrint(this);
     }
 
     public static class Builder extends ExpressionBuilder<Builder> {

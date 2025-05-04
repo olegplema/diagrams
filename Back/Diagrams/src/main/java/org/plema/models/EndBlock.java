@@ -8,8 +8,8 @@ public class EndBlock extends AbstractBlock {
     }
 
     @Override
-    public void doVisitor(Visitor v) {
-        v.doEnd(this);
+    public Integer doVisitor(Visitor v) {
+        return v.doEnd(this);
     }
 
     public static class Builder extends AbstractBuilder<Builder> {

@@ -11,8 +11,8 @@ public class InputBlock extends AbstractBlock {
     }
 
     @Override
-    public void doVisitor(Visitor v) {
-        v.doInput(this);
+    public Integer doVisitor(Visitor v) {
+        return v.doInput(this);
     }
 
     public Variable getVariable() {
