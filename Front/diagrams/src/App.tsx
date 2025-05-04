@@ -70,7 +70,6 @@ const FlowNode = ({ data, id }: { data: NodeData; id: string }) => {
 
   return (
     <div className={`bg-white border-2 ${isStartThread ? 'border-blue-500' : 'border-gray-300'} rounded-lg p-4 shadow-md min-w-[200px] relative`}>
-      {/* Delete Button */}
       <button
         onClick={deleteNode}
         className="absolute top-1 right-1 text-red-500 hover:text-red-700 text-lg font-bold"
@@ -240,9 +239,7 @@ const FlowchartEditor = () => {
 
   const deleteNode = useCallback(
     (nodeId: string) => {
-      // Remove the node
       setNodes((nds) => nds.filter((n) => n.id !== nodeId));
-      // Remove all edges connected to this node
       setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
     },
     [setNodes, setEdges]
@@ -276,7 +273,6 @@ const FlowchartEditor = () => {
       setNodes((nds) => [...nds, newNode]);
       setNodeIdCounter((prev) => prev + 1);
 
-      // Automatically create a new thread for start_thread
       if (type === 'start_thread') {
         setThreads((prev) => [...prev, { id: prev.length + 1, nodes: [], edges: [] }]);
       }
@@ -284,77 +280,11 @@ const FlowchartEditor = () => {
     [variables, setNodes, nodeIdCounter, deleteNode]
   );
 
-  // const exportToJson = () => {
-  //   // Group nodes by threads based on start_thread connections
-  //   const threadNodes: FlowNode[][] = threads.map(() => []);
-  //   const startThreadNodes = nodes.filter((n) => n.data.type === 'start_thread');
-  //
-  //   nodes.forEach((node) => {
-  //     if (node.data.type === 'start_thread') return;
-  //
-  //     // Find which thread this node belongs to
-  //     let threadIndex = 0;
-  //     for (let i = 0; i < startThreadNodes.length; i++) {
-  //       const startNode = startThreadNodes[i];
-  //       const isConnected = edges.some(
-  //         (e) =>
-  //           e.source === startNode.id &&
-  //           (e.target === node.id ||
-  //             nodes.some((n) => n.id === e.target && isDescendant(n.id, node.id, edges)))
-  //       );
-  //       if (isConnected) {
-  //         threadIndex = i + 1;
-  //         break;
-  //       }
-  //     }
-  //
-  //     const threadNode: FlowNode = {
-  //       id: parseInt(node.id),
-  //       type: node.data.type as Exclude<NodeType, 'start_thread'>,
-  //       variable: node.data.variable,
-  //       expression: node.data.expression,
-  //       next: edges.find((e) => e.source === node.id && e.sourceHandle === 'next')?.target
-  //         ? parseInt(edges.find((e) => e.source === node.id && e.sourceHandle === 'next')!.target)
-  //         : undefined,
-  //       trueBranch:
-  //         node.data.type === 'condition' &&
-  //         edges.find((e) => e.source === node.id && e.sourceHandle === 'true')?.target
-  //           ? parseInt(edges.find((e) => e.source === node.id && e.sourceHandle === 'true')!.target)
-  //           : undefined,
-  //       falseBranch:
-  //         node.data.type === 'condition' &&
-  //         edges.find((e) => e.source === node.id && e.sourceHandle === 'false')?.target
-  //           ? parseInt(edges.find((e) => e.source === node.id && e.sourceHandle === 'false')!.target)
-  //           : undefined,
-  //       body:
-  //         node.data.type === 'while' &&
-  //         edges.find((e) => e.source === node.id && e.sourceHandle === 'next')?.target
-  //           ? parseInt(edges.find((e) => e.source === node.id && e.sourceHandle === 'next')!.target)
-  //           : undefined,
-  //     };
-  //     threadNodes[threadIndex] = threadNodes[threadIndex] || [];
-  //     threadNodes[threadIndex].push(threadNode);
-  //   });
-  //
-  //   const json = {
-  //     variables,
-  //     threads: threadNodes
-  //       .filter((nodes) => nodes.length > 0)
-  //       .map((nodes) => nodes.sort((a, b) => a.id - b.id)),
-  //   };
-  //
-  //   const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement('a');
-  //   a.href = url;
-  //   a.download = 'flowchart.json';
-  //   a.click();
-  //   URL.revokeObjectURL(url);
-  // };
   const exportToJson = () => {
     const startThreadNodes = nodes.filter((n) => n.data.type === 'start_thread');
     const regularNodes = nodes.filter((n) => n.data.type !== 'start_thread');
 
+    // Визначаємо які вузли належать кожному потоку
     const getThreadNodeIds = (startId: string): Set<string> => {
       const visited = new Set<string>();
       const stack = [startId];
@@ -376,10 +306,60 @@ const FlowchartEditor = () => {
       const threadNodeIds = getThreadNodeIds(startNode.id);
       const threadNodes = regularNodes.filter(n => threadNodeIds.has(n.id));
 
-      // Створюємо карту ідентифікаторів для вузлів у потоці
+      // Створити локальні id для цього потоку
       const idMap: Record<string, number> = {};
       threadNodes.forEach((n, index) => {
         idMap[n.id] = index + 1;
+      });
+
+      // Знайти всі while блоки в потоці
+      const whileNodes = threadNodes.filter(n => n.data.type === 'while');
+
+      // Знайти всі end блоки
+      const endNodes = threadNodes.filter(n => n.data.type === 'end');
+
+      // Зберігає інформацію про те, який блок перед end і який while з ним пов'язаний
+      const whileBlocksInfo: Record<string, {
+        lastNodeBeforeEnd: string | null,
+        endNodeId: string | null
+      }> = {};
+
+      // Для кожного while блоку шукаємо останній блок перед end блоком
+      whileNodes.forEach(whileNode => {
+        // Починаємо з блоку, на який вказує body вказівник while
+        const bodyEdge = edges.find(e => e.source === whileNode.id && e.sourceHandle === 'next');
+        if (!bodyEdge) return;
+
+        let currentNodeId = bodyEdge.target;
+        let foundEndNode = false;
+        let lastNodeBeforeEnd: string | null = null;
+        let endNodeId: string | null = null;
+
+        // Проходимо по шляху від першого блоку тіла циклу
+        while (!foundEndNode) {
+          const currentNode = threadNodes.find(n => n.id === currentNodeId);
+          if (!currentNode) break;
+
+          // Знаходимо наступний блок за поточним
+          const nextEdge = edges.find(e => e.source === currentNodeId && e.sourceHandle === 'next');
+          if (!nextEdge) break;
+
+          const nextNodeId = nextEdge.target;
+          const nextNode = threadNodes.find(n => n.id === nextNodeId);
+
+          // Якщо наступний блок - end, запам'ятовуємо поточний як останній перед end
+          if (nextNode && nextNode.data.type === 'end') {
+            lastNodeBeforeEnd = currentNodeId;
+            endNodeId = nextNodeId;
+            foundEndNode = true;
+            break;
+          }
+
+          // Переходимо до наступного блоку
+          currentNodeId = nextNodeId;
+        }
+
+        whileBlocksInfo[whileNode.id] = { lastNodeBeforeEnd, endNodeId };
       });
 
       const getTargetId = (sourceId: string, handle: string): number | undefined => {
@@ -387,70 +367,57 @@ const FlowchartEditor = () => {
         return edge?.target && idMap[edge.target] ? idMap[edge.target] : undefined;
       };
 
-      // Створюємо базові вузли з основними властивостями
-      const rawNodes = threadNodes.map((node) => {
-        return {
-          originalId: node.id,
+      const flowNodes: FlowNode[] = threadNodes.map((node) => {
+        // Базовий об'єкт для вузла
+        const baseNode: FlowNode = {
           id: idMap[node.id],
           type: node.data.type as Exclude<NodeType, 'start_thread'>,
           variable: node.data.variable,
           expression: node.data.expression,
-          next: (node.data.type !== 'condition' && node.data.type !== 'end')
-            ? getTargetId(node.id, 'next')
-            : undefined,
-          trueBranch: node.data.type === 'condition' ? getTargetId(node.id, 'true') : undefined,
-          falseBranch: node.data.type === 'condition' ? getTargetId(node.id, 'false') : undefined,
-          body: node.data.type === 'while' ? getTargetId(node.id, 'next') : undefined,
         };
-      });
 
-      // Обробка циклів while
-      for (let node of rawNodes) {
-        if (node.type === 'while' && node.body) {
-          // Знаходимо оригінальний ID while вузла
-          const whileOriginalId = threadNodes.find(n => idMap[n.id] === node.id)?.id;
-          if (!whileOriginalId) continue;
-
-          // Знаходимо всі вузли в тілі циклу
-          let bodyNodes = new Set<number>();
-          let currentNodeId = node.body;
-
-          // Обхід вузлів тіла циклу до кінця
-          while (currentNodeId) {
-            bodyNodes.add(currentNodeId);
-            const currentNode = rawNodes.find(n => n.id === currentNodeId);
-            if (!currentNode || !currentNode.next) break;
-            currentNodeId = currentNode.next;
+        // Додаємо специфічні поля в залежності від типу вузла
+        if (node.data.type === 'condition') {
+          baseNode.trueBranch = getTargetId(node.id, 'true');
+          baseNode.falseBranch = getTargetId(node.id, 'false');
+        } else if (node.data.type === 'while') {
+          // Додаємо тіло циклу
+          const bodyEdge = edges.find(e => e.source === node.id && e.sourceHandle === 'next');
+          if (bodyEdge) {
+            baseNode.body = idMap[bodyEdge.target];
           }
 
-          // Знаходимо останній вузол у тілі циклу
-          const lastBodyNode = rawNodes.find(n => {
-            if (!n.next) return false;
-            return bodyNodes.has(n.id) && !bodyNodes.has(n.next);
-          });
+          // Знаходимо end блок, до якого веде шлях від цього while
+          const whileInfo = whileBlocksInfo[node.id];
+          if (whileInfo && whileInfo.endNodeId) {
+            baseNode.next = idMap[whileInfo.endNodeId];
+          }
+        } else {
+          // Перевіряємо, чи це останній блок перед end в якомусь циклі
+          let isLastBlockBeforeEnd = false;
+          let whileNodeId: string | null = null;
 
-          // Знаходимо вузол, який йде після циклу
-          const exitEdge = edges.find(e => e.source === whileOriginalId && e.sourceHandle === 'next');
-          if (exitEdge && exitEdge.target) {
-            node.next = idMap[exitEdge.target];
+          for (const [wNodeId, info] of Object.entries(whileBlocksInfo)) {
+            if (info.lastNodeBeforeEnd === node.id) {
+              isLastBlockBeforeEnd = true;
+              whileNodeId = wNodeId;
+              break;
+            }
           }
 
-          // Встановлюємо покажчик останнього блоку тіла назад на while блок
-          if (lastBodyNode) {
-            lastBodyNode.next = node.id;
+          if (isLastBlockBeforeEnd && whileNodeId) {
+            // Якщо це останній блок перед end в циклі while, вказуємо на while
+            baseNode.next = idMap[whileNodeId];
+          } else {
+            // Інакше використовуємо звичайний next
+            baseNode.next = getTargetId(node.id, 'next');
           }
         }
-      }
 
-      // Для end блоків встановлюємо next: null
-      rawNodes.forEach(n => {
-        if (n.type === 'end') {
-          // @ts-ignore
-          n.next = null;
-        }
+        return baseNode;
       });
 
-      return rawNodes.map(({ originalId, ...rest }) => rest);
+      return flowNodes;
     });
 
     const json = {
@@ -465,7 +432,7 @@ const FlowchartEditor = () => {
     a.download = 'flowchart.json';
     a.click();
     URL.revokeObjectURL(url);
-  };  // Helper to check if a node is a descendant of another node
+  };
   const isDescendant = (startId: string, targetId: string, edges: Edge[]): boolean => {
     const visited = new Set<string>();
     const stack = [startId];
