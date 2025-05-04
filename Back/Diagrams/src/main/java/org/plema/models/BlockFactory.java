@@ -59,6 +59,7 @@ public class BlockFactory {
 
         registerBlockType("end", json -> new EndBlock.Builder()
                 .id(json.getInteger("id"))
+                .next(json.getInteger("next", null))
                 .build());
     }
 

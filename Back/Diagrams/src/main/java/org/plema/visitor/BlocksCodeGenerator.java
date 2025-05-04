@@ -2,7 +2,7 @@ package org.plema.visitor;
 
 import org.plema.models.*;
 
-import java.util.Map;
+import java.util.*;
 
 public class BlocksCodeGenerator implements Visitor {
 
@@ -11,8 +11,24 @@ public class BlocksCodeGenerator implements Visitor {
 
     private Integer conditionLevel = 0;
     private Integer currentBlockId = 1;
+    private final Stack<ConditionInfo> conditionStack = new Stack<>();
+    private final List<Integer> loopBlockIds = new ArrayList<>();
 
-    public BlocksCodeGenerator(StringBuilder stringBuilder, Map<Integer, AbstractBlock> blockMap ) {
+    private static class ConditionInfo {
+        Integer conditionId;
+        Integer trueBranchId;
+        Integer falseBranchId;
+        Integer endId;
+
+        public ConditionInfo(Integer conditionId, Integer trueBranchId, Integer falseBranchId, Integer endId) {
+            this.conditionId = conditionId;
+            this.trueBranchId = trueBranchId;
+            this.falseBranchId = falseBranchId;
+            this.endId = endId;
+        }
+    }
+
+    public BlocksCodeGenerator(StringBuilder stringBuilder, Map<Integer, AbstractBlock> blockMap) {
         this.code = stringBuilder;
         this.blockMap = blockMap;
     }
@@ -54,32 +70,52 @@ public class BlocksCodeGenerator implements Visitor {
         Integer trueBranchId = conditionBlock.getTrueBranch();
         Integer falseBranchId = conditionBlock.getFalseBranch();
 
-        if (blockMap.containsKey(trueBranchId)) {
-            currentBlockId = trueBranchId;
-            return;
-        }
+        Integer endId = findEndBlockFor(conditionBlock.getId());
 
-        if (blockMap.containsKey(falseBranchId) && !isEndBlock(falseBranchId)) {
-            code.append("                } else {\n");
-            currentBlockId = falseBranchId;
-        } else {
-            code.append("                }\n");
-        }
+        conditionStack.push(new ConditionInfo(
+                conditionBlock.getId(),
+                trueBranchId,
+                falseBranchId,
+                endId
+        ));
+
+        currentBlockId = trueBranchId;
     }
 
     @Override
     public void doWhile(WhileBlock whileBlock) {
-        code.append("                while (").append(whileBlock.getExpression()).append(") {\n");
-        conditionLevel++;
-        currentBlockId = whileBlock.getBody();
+        if (!loopBlockIds.contains(whileBlock.getId())) {
+            code.append("                while (").append(whileBlock.getExpression()).append(") {\n");
+            loopBlockIds.add(whileBlock.getId());
+            conditionLevel++;
+            currentBlockId = whileBlock.getBody();
+        } else {
+            conditionLevel--;
+            loopBlockIds.remove(whileBlock.getId());
+            currentBlockId = whileBlock.getNext();
+        }
     }
 
     @Override
     public void doEnd(EndBlock endBlock) {
-        code.delete(code.length() - 4, code.length());
-        code.append("                }\n");
-        currentBlockId = endBlock.getNext();
         conditionLevel--;
+        code.delete(code.length() - 4, code.length());
+
+        if (!conditionStack.isEmpty() && conditionStack.peek().endId.equals(endBlock.getId())) {
+            ConditionInfo info = conditionStack.pop();
+
+            if (blockMap.containsKey(info.falseBranchId)) {
+                code.append("                } else {\n");
+                currentBlockId = info.falseBranchId;
+                conditionLevel++;
+                return;
+            }
+            code.append("                }\n");
+        } else {
+            code.append("                }\n");
+        }
+
+        currentBlockId = endBlock.getNext();
     }
 
     @Override
@@ -101,10 +137,67 @@ public class BlocksCodeGenerator implements Visitor {
         blockMap.clear();
         currentBlockId = 1;
         conditionLevel = 0;
+        conditionStack.clear();
     }
 
-    private boolean isEndBlock(int blockId) {
-        return !blockMap.containsKey(blockId) || blockMap.get(blockId) instanceof EndBlock;
+    private Integer findEndBlockFor(Integer blockId) {
+        AbstractBlock block = blockMap.get(blockId);
+        if (block instanceof ConditionBlock conditionBlock) {
+
+            Set<Integer> seenInTrue = new HashSet<>();
+            Set<Integer> seenInFalse = new HashSet<>();
+
+            Integer current = conditionBlock.getTrueBranch();
+            while (blockMap.containsKey(current) && !seenInTrue.contains(current)) {
+                seenInTrue.add(current);
+                AbstractBlock currentBlock = blockMap.get(current);
+                if (currentBlock instanceof EndBlock) {
+                    return current;
+                }
+
+                current = currentBlock.getNext();
+                if (current == null) break;
+            }
+
+            current = conditionBlock.getFalseBranch();
+            while (blockMap.containsKey(current) && !seenInFalse.contains(current)) {
+                seenInFalse.add(current);
+                AbstractBlock currentBlock = blockMap.get(current);
+                if (currentBlock instanceof EndBlock) {
+                    return current;
+                }
+
+                current = currentBlock.getNext();
+                if (current == null) break;
+            }
+
+            for (Integer id : seenInTrue) {
+                if (seenInFalse.contains(id)) {
+                    return id;
+                }
+            }
+        } else if (block instanceof WhileBlock whileBlock) {
+            return whileBlock.getNext();
+        }
+
+        for (Map.Entry<Integer, AbstractBlock> entry : blockMap.entrySet()) {
+            if (entry.getValue() instanceof EndBlock && !isAssignedToOtherStructure(entry.getKey(), blockId)) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
     }
 
+    private boolean isAssignedToOtherStructure(Integer endBlockId, Integer excludeBlockId) {
+        for (Map.Entry<Integer, AbstractBlock> entry : blockMap.entrySet()) {
+            if (!entry.getKey().equals(excludeBlockId)) {
+                AbstractBlock block = entry.getValue();
+                if (block instanceof WhileBlock && ((WhileBlock) block).getNext().equals(endBlockId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

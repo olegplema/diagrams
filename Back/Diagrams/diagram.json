@@ -47,39 +47,35 @@
         "id": 6,
         "type": "print",
         "expression": "Y",
-        "next": 8
+        "next": 9
       },
       {
         "id": 7,
         "type": "print",
         "expression": "\"Condition was false\"",
+        "next": 9
+      },
+      {
+        "id": 9,
+        "type": "end",
         "next": 8
       },
       {
         "id": 8,
         "type": "print",
-        "expression": "\"Condition was true\"",
-        "next": 9
-      },
-      {
-        "id": 9,
-        "type": "end_condition",
-        "next": 10
+        "expression": "\"After condition\"",
+        "next": 2
       },
       {
         "id": 10,
-        "type": "end_condition",
+        "type": "end",
         "next": 11
       },
       {
         "id": 11,
         "type": "print",
         "expression": "\"Loop ended\"",
-        "next": 12
-      },
-      {
-        "id": 12,
-        "type": "end"
+        "next": null
       }
     ],
     [
@@ -122,11 +118,6 @@
       },
       {
         "id": 7,
-        "type": "end_condition",
-        "next": 8
-      },
-      {
-        "id": 8,
         "type": "end"
       }
     ]
