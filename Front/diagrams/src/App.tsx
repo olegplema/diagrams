@@ -355,24 +355,20 @@ const FlowchartEditor = () => {
     const startThreadNodes = nodes.filter((n) => n.data.type === 'start_thread');
     const regularNodes = nodes.filter((n) => n.data.type !== 'start_thread');
 
-    // Визначаємо які вузли належать кожному потоку
     const getThreadNodeIds = (startId: string): Set<string> => {
       const visited = new Set<string>();
       const stack = [startId];
-
       while (stack.length > 0) {
         const current = stack.pop()!;
         const children = edges
           .filter(e => e.source === current)
           .map(e => e.target)
           .filter(t => !visited.has(t));
-
         children.forEach(child => {
           visited.add(child);
           stack.push(child);
         });
       }
-
       return visited;
     };
 
@@ -380,7 +376,7 @@ const FlowchartEditor = () => {
       const threadNodeIds = getThreadNodeIds(startNode.id);
       const threadNodes = regularNodes.filter(n => threadNodeIds.has(n.id));
 
-      // Створити локальні id для цього потоку
+      // Створюємо карту ідентифікаторів для вузлів у потоці
       const idMap: Record<string, number> = {};
       threadNodes.forEach((n, index) => {
         idMap[n.id] = index + 1;
@@ -391,18 +387,70 @@ const FlowchartEditor = () => {
         return edge?.target && idMap[edge.target] ? idMap[edge.target] : undefined;
       };
 
-      const flowNodes: FlowNode[] = threadNodes.map((node) => ({
-        id: idMap[node.id],
-        type: node.data.type as Exclude<NodeType, 'start_thread'>,
-        variable: node.data.variable,
-        expression: node.data.expression,
-        next: node.data.type !== 'condition' && node.data.type !== 'while' ? getTargetId(node.id, 'next') : undefined,
-        trueBranch: node.data.type === 'condition' ? getTargetId(node.id, 'true') : undefined,
-        falseBranch: node.data.type === 'condition' ? getTargetId(node.id, 'false') : undefined,
-        body: node.data.type === 'while' ? getTargetId(node.id, 'next') : undefined,
-      }));
+      // Створюємо базові вузли з основними властивостями
+      const rawNodes = threadNodes.map((node) => {
+        return {
+          originalId: node.id,
+          id: idMap[node.id],
+          type: node.data.type as Exclude<NodeType, 'start_thread'>,
+          variable: node.data.variable,
+          expression: node.data.expression,
+          next: (node.data.type !== 'condition' && node.data.type !== 'end')
+            ? getTargetId(node.id, 'next')
+            : undefined,
+          trueBranch: node.data.type === 'condition' ? getTargetId(node.id, 'true') : undefined,
+          falseBranch: node.data.type === 'condition' ? getTargetId(node.id, 'false') : undefined,
+          body: node.data.type === 'while' ? getTargetId(node.id, 'next') : undefined,
+        };
+      });
 
-      return flowNodes;
+      // Обробка циклів while
+      for (let node of rawNodes) {
+        if (node.type === 'while' && node.body) {
+          // Знаходимо оригінальний ID while вузла
+          const whileOriginalId = threadNodes.find(n => idMap[n.id] === node.id)?.id;
+          if (!whileOriginalId) continue;
+
+          // Знаходимо всі вузли в тілі циклу
+          let bodyNodes = new Set<number>();
+          let currentNodeId = node.body;
+
+          // Обхід вузлів тіла циклу до кінця
+          while (currentNodeId) {
+            bodyNodes.add(currentNodeId);
+            const currentNode = rawNodes.find(n => n.id === currentNodeId);
+            if (!currentNode || !currentNode.next) break;
+            currentNodeId = currentNode.next;
+          }
+
+          // Знаходимо останній вузол у тілі циклу
+          const lastBodyNode = rawNodes.find(n => {
+            if (!n.next) return false;
+            return bodyNodes.has(n.id) && !bodyNodes.has(n.next);
+          });
+
+          // Знаходимо вузол, який йде після циклу
+          const exitEdge = edges.find(e => e.source === whileOriginalId && e.sourceHandle === 'next');
+          if (exitEdge && exitEdge.target) {
+            node.next = idMap[exitEdge.target];
+          }
+
+          // Встановлюємо покажчик останнього блоку тіла назад на while блок
+          if (lastBodyNode) {
+            lastBodyNode.next = node.id;
+          }
+        }
+      }
+
+      // Для end блоків встановлюємо next: null
+      rawNodes.forEach(n => {
+        if (n.type === 'end') {
+          // @ts-ignore
+          n.next = null;
+        }
+      });
+
+      return rawNodes.map(({ originalId, ...rest }) => rest);
     });
 
     const json = {
@@ -417,9 +465,7 @@ const FlowchartEditor = () => {
     a.download = 'flowchart.json';
     a.click();
     URL.revokeObjectURL(url);
-  };
-
-  // Helper to check if a node is a descendant of another node
+  };  // Helper to check if a node is a descendant of another node
   const isDescendant = (startId: string, targetId: string, edges: Edge[]): boolean => {
     const visited = new Set<string>();
     const stack = [startId];
