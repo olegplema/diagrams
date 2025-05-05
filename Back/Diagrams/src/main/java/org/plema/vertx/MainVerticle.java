@@ -20,16 +20,17 @@ public class MainVerticle extends AbstractVerticle {
         Set<HttpMethod> allowedMethods = new HashSet<>();
         allowedMethods.add(HttpMethod.GET);
         allowedMethods.add(HttpMethod.POST);
-        allowedMethods.add(HttpMethod.OPTIONS); // Required for preflight
+        allowedMethods.add(HttpMethod.OPTIONS);
 
-        router.route().handler(CorsHandler.create("http://localhost:3000") // <-- Frontend origin
+        router.route().handler(CorsHandler.create()
+                .addRelativeOrigin("http://localhost:3000")
                 .allowedMethods(allowedMethods)
                 .allowedHeader("Content-Type")
                 .allowedHeader("Authorization")
                 .allowCredentials(true));
-        
+
         Router diagramRouter = new DiagramRouter(new DiagramController()).createRouter(vertx);
-        router.mountSubRouter("/", diagramRouter);
+        router.route("/*").subRouter(diagramRouter);
 
         WebSocketLifecycleHandler webSocketHandler = WebSocketHandler.getInstance();
 

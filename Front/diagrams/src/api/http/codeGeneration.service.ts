@@ -1,15 +1,16 @@
-import { AxiosInstance } from 'axios';
 import { mainAxios } from './mainAxios';
-import { IGenerateCodeRequest, IGenerateCodeResponse } from '../../types';
+import { IGenerateCodeRequest, IGenerateCodeResponse, IHttpClient } from '../../types';
+import { HttpService } from './http.service';
 
 class CodeGenerationService {
-  constructor(private readonly axiosInstance: AxiosInstance) {
+
+  constructor(private readonly httpService: HttpService) {
   }
 
   public async generateCode(body: IGenerateCodeRequest): Promise<IGenerateCodeResponse> {
-    const response = await this.axiosInstance.post<IGenerateCodeResponse>("/generate-code", body);
-    return response.data;
+    return this.httpService.post("/generate-code", body);
   }
 }
 
-export const codeGenerationService = new CodeGenerationService(mainAxios);
+export const codeGenerationService =
+  new CodeGenerationService(new HttpService(mainAxios as IHttpClient));
