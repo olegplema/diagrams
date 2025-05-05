@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -14,26 +14,14 @@ import {
   Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-
-// Types
-type NodeType = 'start_thread' | 'input' | 'assign' | 'while' | 'condition' | 'print' | 'end';
-type VariableType = 'int' | string;
-type Variable = { name: string; type: VariableType };
-
-interface FlowNode {
-  id: number;
-  type: Exclude<NodeType, 'start_thread'>;
-  variable?: string;
-  expression?: string;
-  next?: number | null;
-  trueBranch?: number;
-  falseBranch?: number;
-  body?: number;
-}
-
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NodeType, Variable, IFlowNode, VariableType } from './types';
+import { useCodeGeneration } from './hooks/useCodeGeneration';
+import 'prismjs/themes/prism-tomorrow.css';
+import CodeModal from './components/CodeModal';
 interface FlowThread {
   id: number;
-  nodes: FlowNode[];
+  nodes: IFlowNode[];
   edges: Edge[];
 }
 
@@ -45,6 +33,7 @@ interface NodeData {
   setExpression?: (expression: string) => void;
   variables: Variable[];
   deleteNode?: () => void;
+
   [key: string]: unknown;
 }
 
@@ -69,7 +58,8 @@ const FlowNode = ({ data, id }: { data: NodeData; id: string }) => {
   };
 
   return (
-    <div className={`bg-white border-2 ${isStartThread ? 'border-blue-500' : 'border-gray-300'} rounded-lg p-4 shadow-md min-w-[200px] relative`}>
+    <div
+      className={`bg-white border-2 ${isStartThread ? 'border-blue-500' : 'border-gray-300'} rounded-lg p-4 shadow-md min-w-[200px] relative`}>
       <button
         onClick={deleteNode}
         className="absolute top-1 right-1 text-red-500 hover:text-red-700 text-lg font-bold"
@@ -229,12 +219,12 @@ const FlowchartEditor = () => {
               id: `${params.source}-${params.target}-${params.sourceHandle}`,
               type: params.sourceHandle === 'true' ? 'smoothstep' : 'step',
             },
-            eds
-          )
+            eds,
+          ),
         );
       }
     },
-    [nodes, edges, setEdges]
+    [nodes, edges, setEdges],
   );
 
   const deleteNode = useCallback(
@@ -242,7 +232,7 @@ const FlowchartEditor = () => {
       setNodes((nds) => nds.filter((n) => n.id !== nodeId));
       setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
     },
-    [setNodes, setEdges]
+    [setNodes, setEdges],
   );
 
   const onAddNode = useCallback(
@@ -258,12 +248,12 @@ const FlowchartEditor = () => {
           expression: type !== 'end' ? '' : undefined,
           setVariable: type !== 'end' ? (variable: string) => {
             setNodes((nds) =>
-              nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, variable } } : n))
+              nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, variable } } : n)),
             );
           } : undefined,
           setExpression: type !== 'end' ? (expression: string) => {
             setNodes((nds) =>
-              nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, expression } } : n))
+              nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, expression } } : n)),
             );
           } : undefined,
           variables,
@@ -277,14 +267,13 @@ const FlowchartEditor = () => {
         setThreads((prev) => [...prev, { id: prev.length + 1, nodes: [], edges: [] }]);
       }
     },
-    [variables, setNodes, nodeIdCounter, deleteNode]
+    [variables, setNodes, nodeIdCounter, deleteNode],
   );
 
-  const exportToJson = () => {
+  const handleGenerateCode = () => {
     const startThreadNodes = nodes.filter((n) => n.data.type === 'start_thread');
     const regularNodes = nodes.filter((n) => n.data.type !== 'start_thread');
 
-    // Визначаємо які вузли належать кожному потоку
     const getThreadNodeIds = (startId: string): Set<string> => {
       const visited = new Set<string>();
       const stack = [startId];
@@ -302,31 +291,25 @@ const FlowchartEditor = () => {
       return visited;
     };
 
-    const threads: FlowNode[][] = startThreadNodes.map((startNode) => {
+    const threads: IFlowNode[][] = startThreadNodes.map((startNode) => {
       const threadNodeIds = getThreadNodeIds(startNode.id);
       const threadNodes = regularNodes.filter(n => threadNodeIds.has(n.id));
 
-      // Створити локальні id для цього потоку
       const idMap: Record<string, number> = {};
       threadNodes.forEach((n, index) => {
         idMap[n.id] = index + 1;
       });
 
-      // Знайти всі while блоки в потоці
       const whileNodes = threadNodes.filter(n => n.data.type === 'while');
 
-      // Знайти всі end блоки
       const endNodes = threadNodes.filter(n => n.data.type === 'end');
 
-      // Зберігає інформацію про те, який блок перед end і який while з ним пов'язаний
       const whileBlocksInfo: Record<string, {
         lastNodeBeforeEnd: string | null,
         endNodeId: string | null
       }> = {};
 
-      // Для кожного while блоку шукаємо останній блок перед end блоком
       whileNodes.forEach(whileNode => {
-        // Починаємо з блоку, на який вказує body вказівник while
         const bodyEdge = edges.find(e => e.source === whileNode.id && e.sourceHandle === 'next');
         if (!bodyEdge) return;
 
@@ -335,19 +318,16 @@ const FlowchartEditor = () => {
         let lastNodeBeforeEnd: string | null = null;
         let endNodeId: string | null = null;
 
-        // Проходимо по шляху від першого блоку тіла циклу
         while (!foundEndNode) {
           const currentNode = threadNodes.find(n => n.id === currentNodeId);
           if (!currentNode) break;
 
-          // Знаходимо наступний блок за поточним
           const nextEdge = edges.find(e => e.source === currentNodeId && e.sourceHandle === 'next');
           if (!nextEdge) break;
 
           const nextNodeId = nextEdge.target;
           const nextNode = threadNodes.find(n => n.id === nextNodeId);
 
-          // Якщо наступний блок - end, запам'ятовуємо поточний як останній перед end
           if (nextNode && nextNode.data.type === 'end') {
             lastNodeBeforeEnd = currentNodeId;
             endNodeId = nextNodeId;
@@ -355,7 +335,6 @@ const FlowchartEditor = () => {
             break;
           }
 
-          // Переходимо до наступного блоку
           currentNodeId = nextNodeId;
         }
 
@@ -367,33 +346,29 @@ const FlowchartEditor = () => {
         return edge?.target && idMap[edge.target] ? idMap[edge.target] : undefined;
       };
 
-      const flowNodes: FlowNode[] = threadNodes.map((node) => {
-        // Базовий об'єкт для вузла
-        const baseNode: FlowNode = {
+      const flowNodes: IFlowNode[] = threadNodes.map((node) => {
+        const baseNode: IFlowNode = {
           id: idMap[node.id],
           type: node.data.type as Exclude<NodeType, 'start_thread'>,
           variable: node.data.variable,
           expression: node.data.expression,
         };
 
-        // Додаємо специфічні поля в залежності від типу вузла
         if (node.data.type === 'condition') {
           baseNode.trueBranch = getTargetId(node.id, 'true');
           baseNode.falseBranch = getTargetId(node.id, 'false');
         } else if (node.data.type === 'while') {
-          // Додаємо тіло циклу
           const bodyEdge = edges.find(e => e.source === node.id && e.sourceHandle === 'next');
           if (bodyEdge) {
             baseNode.body = idMap[bodyEdge.target];
           }
 
-          // Знаходимо end блок, до якого веде шлях від цього while
           const whileInfo = whileBlocksInfo[node.id];
           if (whileInfo && whileInfo.endNodeId) {
             baseNode.next = idMap[whileInfo.endNodeId];
           }
         } else {
-          // Перевіряємо, чи це останній блок перед end в якомусь циклі
+
           let isLastBlockBeforeEnd = false;
           let whileNodeId: string | null = null;
 
@@ -406,10 +381,8 @@ const FlowchartEditor = () => {
           }
 
           if (isLastBlockBeforeEnd && whileNodeId) {
-            // Якщо це останній блок перед end в циклі while, вказуємо на while
             baseNode.next = idMap[whileNodeId];
           } else {
-            // Інакше використовуємо звичайний next
             baseNode.next = getTargetId(node.id, 'next');
           }
         }
@@ -422,46 +395,29 @@ const FlowchartEditor = () => {
 
     const json = {
       variables,
-      threads
+      threads,
     };
 
-    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'flowchart.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-  const isDescendant = (startId: string, targetId: string, edges: Edge[]): boolean => {
-    const visited = new Set<string>();
-    const stack = [startId];
+    console.log(json);
 
-    while (stack.length > 0) {
-      const currentId = stack.pop()!;
-      if (currentId === targetId) return true;
-      if (visited.has(currentId)) continue;
-      visited.add(currentId);
-
-      const outgoingEdges = edges.filter((e) => e.source === currentId);
-      for (const edge of outgoingEdges) {
-        stack.push(edge.target);
-      }
-    }
-    return false;
+    generate(json);
   };
+
+  const {
+    generatedCodeData,
+    generate,
+  } = useCodeGeneration();
+
+  useEffect(() => {
+    console.log(generatedCodeData);
+  }, [generatedCodeData]);
 
   return (
     <div className="flex h-screen">
       <Sidebar onAddNode={onAddNode} />
       <div className="flex-1">
         <div className="p-4 bg-gray-200">
-          <button
-            onClick={exportToJson}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Export to JSON
-          </button>
+          <CodeModal onClick={handleGenerateCode} generatedCodeData={generatedCodeData} />
         </div>
         <ReactFlow
           nodes={nodes}
@@ -482,17 +438,20 @@ const FlowchartEditor = () => {
   );
 };
 
-// App Component
+const queryClient = new QueryClient();
+
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-600 text-white p-4 shadow-md">
-        <h1 className="text-2xl font-bold">Flowchart Editor</h1>
-      </header>
-      <main className="p-4">
-        <FlowchartEditor />
-      </main>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-blue-600 text-white p-4 shadow-md">
+          <h1 className="text-2xl font-bold">Flowchart Editor</h1>
+        </header>
+        <main className="p-4">
+          <FlowchartEditor />
+        </main>
+      </div>
+    </QueryClientProvider>
   );
 };
 

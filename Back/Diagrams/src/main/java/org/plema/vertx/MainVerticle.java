@@ -2,15 +2,35 @@ package org.plema.vertx;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.CorsHandler;
 import org.plema.controllers.DiagramController;
 import org.plema.vertx.interfaces.WebSocketLifecycleHandler;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) {
-        Router router = new DiagramRouter(new DiagramController()).createRouter(vertx);
+        Router router = Router.router(vertx);
+
+        Set<HttpMethod> allowedMethods = new HashSet<>();
+        allowedMethods.add(HttpMethod.GET);
+        allowedMethods.add(HttpMethod.POST);
+        allowedMethods.add(HttpMethod.OPTIONS); // Required for preflight
+
+        router.route().handler(CorsHandler.create("http://localhost:3000") // <-- Frontend origin
+                .allowedMethods(allowedMethods)
+                .allowedHeader("Content-Type")
+                .allowedHeader("Authorization")
+                .allowCredentials(true));
+        
+        Router diagramRouter = new DiagramRouter(new DiagramController()).createRouter(vertx);
+        router.mountSubRouter("/", diagramRouter);
+
         WebSocketLifecycleHandler webSocketHandler = WebSocketHandler.getInstance();
 
         vertx.createHttpServer()
@@ -26,5 +46,4 @@ public class MainVerticle extends AbstractVerticle {
                     throwable.printStackTrace();
                     startPromise.fail(throwable);
                 });
-    }
-}
+    }}
