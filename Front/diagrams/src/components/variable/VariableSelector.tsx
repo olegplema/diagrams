@@ -43,7 +43,7 @@ const VariableSelector: React.FC<IProps> = ({ variables, setVariables }) => {
         onChange={(e) => setVarType(e.target.value as VariableType)}
         className="p-2 border rounded mb-2"
       >
-        {Object.values(VariableType).map((v) => (<option value={v}>{v}</option>))}
+        {Object.values(VariableType).map((v) => (<option key={v} value={v}>{v}</option>))}
       </select>
       <button onClick={addVariable} className="bg-green-500 text-white p-2 rounded-b">
         Add
