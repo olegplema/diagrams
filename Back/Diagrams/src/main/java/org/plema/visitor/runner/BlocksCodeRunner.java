@@ -1,13 +1,13 @@
-package org.plema.visitor;
+package org.plema.visitor.runner;
 
 import org.plema.DataType;
 import org.plema.Value;
 import org.plema.models.*;
-import org.plema.services.ExpressionService;
+import org.plema.visitor.Visitor;
 
 import java.util.Map;
 
-public class BlocksCodeRunner implements Visitor  {
+public class BlocksCodeRunner implements Visitor {
     private final Map<String, Value> variables;
 
     public BlocksCodeRunner(Map<String, Value> variables) {
@@ -29,7 +29,7 @@ public class BlocksCodeRunner implements Visitor  {
         if (!variables.containsKey(varName)) {
             throw new IllegalArgumentException("Variable " + varName + " not found");
         }
-        Value value = ExpressionService.evaluateExpression(parts[1].trim(), variables);
+        Value value = RpnHandler.evaluateExpression(parts[1].trim(), variables);
         variables.put(varName, value);
         return assignBlock.getNext();
     }
@@ -37,14 +37,14 @@ public class BlocksCodeRunner implements Visitor  {
     @Override
     public Integer doCondition(ConditionBlock conditionBlock) {
         String condition = conditionBlock.getExpression();
-        boolean result = ExpressionService.evaluateCondition(condition, variables);
+        boolean result = RpnHandler.evaluateCondition(condition, variables);
         return result ? conditionBlock.getTrueBranch() : conditionBlock.getFalseBranch();
     }
 
     @Override
     public Integer doWhile(WhileBlock whileBlock) {
         String condition = whileBlock.getExpression();
-        if (ExpressionService.evaluateCondition(condition, variables)) {
+        if (RpnHandler.evaluateCondition(condition, variables)) {
             return whileBlock.getBody();
         } else {
             return whileBlock.getNext();

@@ -3,7 +3,7 @@ package org.plema.services;
 import org.plema.Value;
 import org.plema.models.AbstractBlock;
 import org.plema.models.Diagram;
-import org.plema.visitor.BlocksCodeRunner;
+import org.plema.visitor.runner.BlocksCodeRunner;
 
 import java.util.HashMap;
 import java.util.Map;
