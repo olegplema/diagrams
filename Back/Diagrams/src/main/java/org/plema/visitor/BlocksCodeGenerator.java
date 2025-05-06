@@ -70,14 +70,13 @@ public class BlocksCodeGenerator implements Visitor {
 
     @Override
     public Integer doWhile(WhileBlock whileBlock) {
-        code.append("    ".repeat(Math.max(0, conditionLevel)));
         if (!loopBlockIds.contains(whileBlock.getId())) {
+            code.append("    ".repeat(Math.max(0, conditionLevel)));
             code.append("                while (").append(whileBlock.getExpression()).append(") {\n");
             loopBlockIds.add(whileBlock.getId());
             conditionLevel++;
             return whileBlock.getBody();
         } else {
-            conditionLevel--;
             loopBlockIds.remove(whileBlock.getId());
             return whileBlock.getNext();
         }
