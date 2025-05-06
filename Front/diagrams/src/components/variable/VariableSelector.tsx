@@ -2,15 +2,12 @@ import React, { useState } from 'react';
 import { VariableType } from '../../types/VariableType';
 import { JAVA_KEYWORDS } from '../../constants/javaKeywords';
 import { Variable } from '../../types/types';
-
-interface IProps {
-  variables: Variable[];
-  setVariables: (vars: Variable[]) => void;
-}
+import { useVariableStore } from '../../store/variableStore';
 
 const regexValidator = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
-const VariableSelector: React.FC<IProps> = ({ variables, setVariables }) => {
+const VariableSelector: React.FC = () => {
+  const { variables, setVariables } = useVariableStore();
   const [newVar, setNewVar] = useState('');
   const [varType, setVarType] = useState<VariableType>(VariableType.INT);
 

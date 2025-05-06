@@ -17,9 +17,10 @@ import CodeModal from '../CodeModal';
 import FlowNode from '../blocks/FlowBlock';
 import Sidebar from '../sidebar/Sidebar';
 import VariableManager from '../variable/VariableManager';
+import { useVariableStore } from '../../store/variableStore';
 
 const FlowchartEditor = () => {
-  const [variables, setVariables] = useState<Variable[]>([]);
+  const { variables } = useVariableStore();
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [nodeIdCounter, setNodeIdCounter] = useState(0);
@@ -68,17 +69,22 @@ const FlowchartEditor = () => {
           type,
           variable: type !== BlockType.END ? variables[0]?.name || '' : undefined,
           expression: '',
-          setVariable: type !== BlockType.END ? (variable: string) => {
-            setNodes((nds) =>
-              nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, variable } } : n)),
-            );
-          } : undefined,
-          setExpression: type !== BlockType.END ? (expression: string) => {
-            setNodes((nds) =>
-              nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, expression } } : n)),
-            );
-          } : undefined,
-          variables,
+          setVariable:
+            type !== BlockType.END
+              ? (variable: string) => {
+                setNodes((nds) =>
+                  nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, variable } } : n)),
+                );
+              }
+              : undefined,
+          setExpression:
+            type !== BlockType.END
+              ? (expression: string) => {
+                setNodes((nds) =>
+                  nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, expression } } : n)),
+                );
+              }
+              : undefined,
           deleteNode: () => deleteNode(id),
         },
       };
@@ -98,10 +104,10 @@ const FlowchartEditor = () => {
       while (stack.length > 0) {
         const current = stack.pop()!;
         const children = edges
-          .filter(e => e.source === current)
-          .map(e => e.target)
-          .filter(t => !visited.has(t));
-        children.forEach(child => {
+          .filter((e) => e.source === current)
+          .map((e) => e.target)
+          .filter((t) => !visited.has(t));
+        children.forEach((child) => {
           visited.add(child);
           stack.push(child);
         });
@@ -111,22 +117,25 @@ const FlowchartEditor = () => {
 
     const threads: IFlowNode[][] = startThreadNodes.map((startNode) => {
       const threadNodeIds = getThreadNodeIds(startNode.id);
-      const threadNodes = regularNodes.filter(n => threadNodeIds.has(n.id));
+      const threadNodes = regularNodes.filter((n) => threadNodeIds.has(n.id));
 
       const idMap: Record<string, number> = {};
       threadNodes.forEach((n, index) => {
         idMap[n.id] = index + 1;
       });
 
-      const whileNodes = threadNodes.filter(n => n.data.type === BlockType.WHILE);
+      const whileNodes = threadNodes.filter((n) => n.data.type === BlockType.WHILE);
 
-      const whileBlocksInfo: Record<string, {
-        lastNodeBeforeEnd: string | null,
-        endNodeId: string | null
-      }> = {};
+      const whileBlocksInfo: Record<
+        string,
+        {
+          lastNodeBeforeEnd: string | null;
+          endNodeId: string | null;
+        }
+      > = {};
 
-      whileNodes.forEach(whileNode => {
-        const bodyEdge = edges.find(e => e.source === whileNode.id && e.sourceHandle === 'next');
+      whileNodes.forEach((whileNode) => {
+        const bodyEdge = edges.find((e) => e.source === whileNode.id && e.sourceHandle === 'next');
         if (!bodyEdge) return;
 
         let currentNodeId = bodyEdge.target;
@@ -135,14 +144,14 @@ const FlowchartEditor = () => {
         let endNodeId: string | null = null;
 
         while (!foundEndNode) {
-          const currentNode = threadNodes.find(n => n.id === currentNodeId);
+          const currentNode = threadNodes.find((n) => n.id === currentNodeId);
           if (!currentNode) break;
 
-          const nextEdge = edges.find(e => e.source === currentNodeId && e.sourceHandle === 'next');
+          const nextEdge = edges.find((e) => e.source === currentNodeId && e.sourceHandle === 'next');
           if (!nextEdge) break;
 
           const nextNodeId = nextEdge.target;
-          const nextNode = threadNodes.find(n => n.id === nextNodeId);
+          const nextNode = threadNodes.find((n) => n.id === nextNodeId);
 
           if (nextNode && nextNode.data.type === BlockType.END) {
             lastNodeBeforeEnd = currentNodeId;
@@ -158,14 +167,14 @@ const FlowchartEditor = () => {
       });
 
       const getTargetId = (sourceId: string, handle: string): number | undefined => {
-        const edge = edges.find(e => e.source === sourceId && e.sourceHandle === handle);
+        const edge = edges.find((e) => e.source === sourceId && e.sourceHandle === handle);
         return edge?.target && idMap[edge.target] ? idMap[edge.target] : undefined;
       };
 
       return threadNodes.map((node) => {
         const baseNode: IFlowNode = {
           id: idMap[node.id],
-          type: node.data.type as Exclude<BlockType.END, BlockType.START_THREAD>,
+          type: node.data.type as Exclude<BlockType, BlockType.START_THREAD>,
           variable: node.data.variable,
           expression: node.data.expression,
         };
@@ -174,7 +183,7 @@ const FlowchartEditor = () => {
           baseNode.trueBranch = getTargetId(node.id, 'true');
           baseNode.falseBranch = getTargetId(node.id, 'false');
         } else if (node.data.type === BlockType.WHILE) {
-          const bodyEdge = edges.find(e => e.source === node.id && e.sourceHandle === 'next');
+          const bodyEdge = edges.find((e) => e.source === node.id && e.sourceHandle === 'next');
           if (bodyEdge) {
             baseNode.body = idMap[bodyEdge.target];
           }
@@ -184,7 +193,6 @@ const FlowchartEditor = () => {
             baseNode.next = idMap[whileInfo.endNodeId];
           }
         } else {
-
           let isLastBlockBeforeEnd = false;
           let whileNodeId: string | null = null;
 
@@ -215,11 +223,7 @@ const FlowchartEditor = () => {
     return generate(json);
   };
 
-  const {
-    generatedCodeData,
-    generate,
-  } = useCodeGeneration();
-
+  const { generatedCodeData, generate } = useCodeGeneration();
 
   return (
     <div className="flex h-screen">
@@ -242,7 +246,7 @@ const FlowchartEditor = () => {
           <MiniMap />
         </ReactFlow>
       </div>
-      <VariableManager variables={variables} setVariables={setVariables} />
+      <VariableManager />
     </div>
   );
 };

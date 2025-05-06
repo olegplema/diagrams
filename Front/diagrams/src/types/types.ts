@@ -12,7 +12,7 @@ export interface NodeData {
   expression?: string;
   setVariable?: (variable: string) => void;
   setExpression?: (expression: string) => void;
-  variables: Variable[];
+  // variables: Variable[];
   deleteNode?: () => void;
 
   [key: string]: unknown;

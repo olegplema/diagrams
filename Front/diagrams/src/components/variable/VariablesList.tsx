@@ -1,11 +1,9 @@
 import React from 'react';
-import { Variable } from '../../types/types';
+import { useVariableStore } from '../../store/variableStore';
 
-interface IProps {
-  variables: Variable[]
-}
 
-const VariablesList: React.FC<IProps> = ({variables}) => {
+const VariablesList: React.FC = () => {
+  const { variables } = useVariableStore();
   return (
     <>
       {variables.map((v) => (

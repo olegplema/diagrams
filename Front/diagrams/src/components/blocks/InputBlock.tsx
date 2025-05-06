@@ -2,6 +2,7 @@ import { Handle, Position } from '@xyflow/react';
 import { NodeData } from '../../types/types';
 import React from 'react';
 import CloseButton from '../buttons/CloseButton';
+import { useVariableStore } from '../../store/variableStore';
 
 interface IProps {
   data: NodeData;
@@ -9,6 +10,8 @@ interface IProps {
 }
 
 const InputNode: React.FC<IProps> = ({ data }) => {
+  const { variables } = useVariableStore();
+
   return (
     <div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-md min-w-[200px] relative">
       <CloseButton onClick={data.deleteNode} />
@@ -23,10 +26,11 @@ const InputNode: React.FC<IProps> = ({ data }) => {
             onChange={(e) => data.setVariable?.(e.target.value)}
             className="w-full p-1 border rounded"
           >
-            <option value="">Select variable</option>
-            {data.variables.map((v) => (
+
+            {variables.length <= 0 ? <option value="">Select variable</option> : variables.map((v) => (
               <option key={v.name} value={v.name}>{v.name}</option>
             ))}
+
           </select>
         </div>
       </div>
