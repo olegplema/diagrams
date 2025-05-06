@@ -1,6 +1,6 @@
 import { Handle, Position } from '@xyflow/react';
 import { NodeData } from '../../types/types';
-import React from 'react';
+import React, { useEffect } from 'react';
 import CloseButton from '../buttons/CloseButton';
 import { useVariableStore } from '../../store/variableStore';
 
@@ -11,6 +11,12 @@ interface IProps {
 
 const InputNode: React.FC<IProps> = ({ data }) => {
   const { variables } = useVariableStore();
+
+  useEffect(() => {
+    if (!data.variable && variables.length > 0 && data.setVariable){
+      data.setVariable(variables[0].name)
+    }
+  }, [variables]);
 
   return (
     <div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-md min-w-[200px] relative">
