@@ -1,5 +1,5 @@
 import { mainAxios } from './mainAxios';
-import { IGenerateCodeRequest, IGenerateCodeResponse, IHttpClient } from '../../types';
+import { IGenerateCodeRequest, IGenerateCodeResponse, IHttpClient } from '../../types/types';
 import { HttpService } from './http.service';
 
 class CodeGenerationService {

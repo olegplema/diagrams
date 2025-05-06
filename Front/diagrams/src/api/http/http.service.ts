@@ -1,5 +1,5 @@
 
-import { HttpStatusCode, IHttpClient, IHttpConfig, IMap, IResponse } from '../../types';
+import { HttpStatusCode, IHttpClient, IHttpConfig, IMap, IResponse } from '../../types/types';
 
 const QUERY_LINK_OFFSET = 0;
 
