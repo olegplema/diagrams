@@ -112,7 +112,7 @@ public class CodeRunner {
 
     private String getValueAsString(Value value) {
         return switch (value.type()) {
-            case DataType.INT, DataType.DOUBLE -> String.valueOf(value.value());
+            case DataType.INT, DataType.DOUBLE, DataType.BOOLEAN -> String.valueOf(value.value());
             case DataType.STRING -> "\"" + value.value() + "\"";
         };
     }

@@ -9,10 +9,8 @@ import java.util.Map;
 
 public class BlocksCodeRunner implements Visitor  {
     private final Map<String, Value> variables;
-    private final Map<Integer, AbstractBlock> blockMap;
 
-    public BlocksCodeRunner(Map<Integer, AbstractBlock> blockMap, Map<String, Value> variables) {
-        this.blockMap = blockMap;
+    public BlocksCodeRunner(Map<String, Value> variables) {
         this.variables = variables;
     }
 
@@ -118,7 +116,7 @@ public class BlocksCodeRunner implements Visitor  {
 
     private String getValueAsString(Value value) {
         return switch (value.type()) {
-            case DataType.INT, DataType.DOUBLE -> String.valueOf(value.value());
+            case DataType.INT, DataType.DOUBLE, DataType.BOOLEAN -> String.valueOf(value.value());
             case DataType.STRING -> "\"" + value.value() + "\"";
         };
     }

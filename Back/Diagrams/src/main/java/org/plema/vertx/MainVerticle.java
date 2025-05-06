@@ -47,4 +47,5 @@ public class MainVerticle extends AbstractVerticle {
                     throwable.printStackTrace();
                     startPromise.fail(throwable);
                 });
-    }}
+    }
+}
