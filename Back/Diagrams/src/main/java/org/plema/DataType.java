@@ -3,7 +3,8 @@ package org.plema;
 public enum DataType {
     STRING("String", ""),
     INT("int", 0),
-    DOUBLE("double", 0.0);
+    DOUBLE("double", 0.0),
+    BOOLEAN("boolean", false);
 
     private final String name;
     private final Object defaultValue;

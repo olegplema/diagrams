@@ -28,7 +28,7 @@ public class RunDiagramService extends AbstractDiagramService{
                 executor.execute(() -> {
                     try {
                         Map<Integer, AbstractBlock> blockMap = new HashMap<>();
-                        BlocksCodeRunner blocksCodeRunner = new BlocksCodeRunner(blockMap, variableMap);
+                        BlocksCodeRunner blocksCodeRunner = new BlocksCodeRunner(variableMap);
 
                         executeBlocks(thread, blockMap, blocksCodeRunner);
                     } finally {
