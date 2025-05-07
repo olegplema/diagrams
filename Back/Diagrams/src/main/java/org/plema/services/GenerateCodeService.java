@@ -44,6 +44,7 @@ public class GenerateCodeService extends AbstractDiagramService {
             code.append("            }\n");
             code.append("        }\n");
             code.append("    }\n\n");
+            blockMap.clear();
         }
 
         code.append("    public static void main(String[] args) {\n");
