@@ -14,7 +14,7 @@ const StartThreadBlock: React.FC<IProps> = ({ data }) => {
       <CloseButton onClick={data.deleteNode} />
 
       <div className="font-bold text-center">START_THREAD</div>
-      <Handle type="source" position={Position.Bottom} id="next" className="w-[18px] h-[18px] bg-blue-500" />
+      <Handle type="source" position={Position.Bottom} id="next" className="!w-3 !h-3 bg-blue-500" />
     </div>
   );
 };

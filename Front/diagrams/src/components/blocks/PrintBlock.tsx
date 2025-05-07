@@ -17,7 +17,7 @@ const PrintBlock: React.FC<IProps> = ({ data }) => {
     <div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-md min-w-[200px] relative">
       <CloseButton onClick={data.deleteNode} />
 
-      <Handle type="target" position={Position.Top} className="w-[18px] h-[18px] bg-blue-500" />
+      <Handle type="target" position={Position.Top} className="!w-3 !h-3 bg-blue-500" />
       <div className="font-bold text-center">PRINT</div>
       <div className="mt-2">
         <ExpressionInput
@@ -27,7 +27,7 @@ const PrintBlock: React.FC<IProps> = ({ data }) => {
           placeholder={'e.g., X or "text"'}
         />
       </div>
-      <Handle type="source" position={Position.Bottom} id="next" className="w-[18px] h-[18px] bg-blue-500" />
+      <Handle type="source" position={Position.Bottom} id="next" className="!w-3 !h-3 bg-blue-500" />
     </div>
   );
 };

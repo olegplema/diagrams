@@ -5,15 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8504582e-ca37-4c77-88c4-844cbf71dc92" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../Back/Diagrams/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../Back/Diagrams/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/AssignBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/AssignBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/ConditionBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/ConditionBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/EndBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/EndBlock.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/blocks/InputBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/InputBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/PrintBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/PrintBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/StartThreadBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/StartThreadBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/WhileLoopBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/WhileLoopBlock.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/flowchart/FlowchartEditor.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/flowchart/FlowchartEditor.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/variable/VariableManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/variable/VariableManager.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/variable/VariableSelector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/variable/VariableSelector.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/variable/VariablesList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/variable/VariablesList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/types.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

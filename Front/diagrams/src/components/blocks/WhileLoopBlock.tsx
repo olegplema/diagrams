@@ -11,25 +11,74 @@ interface IProps {
 
 const validatorRegex = /^(?:\s*\(?\s*\w+\s*(==|!=|<=|>=|<|>)\s*(?:\w+|\d+)\s*\)?\s*(?:(\|\||&&)\s*\(?\s*\w+\s*(==|!=|<=|>=|<|>)\s*(?:\w+|\d+)\s*\)?\s*)*)$/
 
-const WhileLoopBlock: React.FC<IProps> = ({ data }) => {
-
+// Example of a modified While Block component
+const WhileBlock: React.FC<IProps> = ({ data }) => {
   return (
-    <div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-md min-w-[200px] relative">
-      <CloseButton onClick={data.deleteNode} />
+    <div className="px-4 py-2 shadow-md rounded-md bg-white border-2 border-cyan-500 min-w-[150px]">
+      <div className="flex items-center justify-center font-bold text-lg pb-2 border-b border-gray-200">
+        While Loop
+      </div>
 
-      <Handle type="target" position={Position.Top} className="w-[18px] h-[18px] bg-blue-500" />
-      <div className="font-bold text-center">WHILE</div>
       <div className="mt-2">
-        <ExpressionInput
-          expression={data.expression}
-          setExpression={data.setExpression}
-          validatorRegex={validatorRegex}
-          placeholder={"e.g., X < 5 or X == 5 or X > 5"}
+        <label className="block text-sm font-medium text-gray-700">Condition:</label>
+        <input
+          value={data.expression || ''}
+          onChange={(e) => data.setExpression?.(e.target.value)}
+          className="mt-1 p-1 w-full border rounded-md"
+          placeholder="Enter condition"
         />
       </div>
-      <Handle type="source" position={Position.Bottom} id="next" className="w-[18px] h-[18px] bg-blue-500" />
+
+
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="in"
+        className="!w-3 !h-3 bg-cyan-500"
+      />
+
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="body"
+        className="!w-3 !h-3 bg-green-500 top-1/3"
+      >
+        <div className="absolute -top-6 left-3 px-6 py-1 bg-green-100 text-green-800 text-xs rounded shadow-sm font-semibold text-center whitespace-nowrap">
+          Body
+        </div>
+      </Handle>
+
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="next"
+        className="!w-3 !h-3 bg-red-500"
+      >
+        <div className="absolute -top-6 right-3 px-6 py-1 bg-red-100 text-red-800 text-xs rounded shadow-sm font-semibold text-center whitespace-nowrap">
+          Exit Loop
+        </div>
+      </Handle>
+
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="return"
+        className="!w-3 !h-3 bg-purple-500 top-1/3"
+      >
+        <div
+          className="absolute top-3 right-3 px-6 py-1 bg-purple-100 text-purple-800 text-xs rounded shadow-sm font-semibold text-center whitespace-nowrap">
+          End Body
+        </div>
+      </Handle>
+
+      <button
+        className="absolute top-0 right-0 p-1 text-red-500"
+        onClick={data.deleteNode}
+      >
+        ×
+      </button>
     </div>
   );
 };
 
-export default WhileLoopBlock;
+export default WhileBlock;
