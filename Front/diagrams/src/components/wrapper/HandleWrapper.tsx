@@ -4,7 +4,7 @@ import { Handle, Position } from '@xyflow/react';
 interface IProps {
   type: 'source' | 'target';
   position: Position;
-  id: string;
+  id?: string;
   label?: string;
   isVisible?: boolean;
   className?: string;

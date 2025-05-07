@@ -1,8 +1,7 @@
-import { Handle, Position } from '@xyflow/react';
+import { Position } from '@xyflow/react';
 import { NodeData } from '../../types/types';
 import React from 'react';
 import HandleWrapper from '../wrapper/HandleWrapper';
-import ExpressionInput from '../inputs/ExpressionInput';
 
 interface IProps {
   data: NodeData;

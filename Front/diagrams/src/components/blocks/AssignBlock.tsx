@@ -4,6 +4,7 @@ import { validateExpression } from '../../utils/expressionValidator';
 import { NodeData } from '../../types/types';
 import CloseButton from '../buttons/CloseButton';
 import ExpressionInput from '../inputs/ExpressionInput';
+import HandleWrapper from '../wrapper/HandleWrapper';
 
 interface IProps {
   data: NodeData;
@@ -23,10 +24,16 @@ const AssignBlock: React.FC<IProps> = ({ data }) => {
           expression={data.expression}
           setExpression={data.setExpression}
           validatorRegex={validatorRegex}
-          placeholder={"e.g., X = 5 or X = Y"}
+          placeholder={'e.g., X = 5 or X = Y'}
         />
       </div>
-      <Handle type="source" position={Position.Bottom} id="next" className="!w-3 !h-3 bg-blue-500" />
+
+      <HandleWrapper
+        type={'source'}
+        position={Position.Bottom}
+        id={'next'}
+        className={'!w-3 !h-3 bg-blue-500'}
+      />
     </div>
   );
 };

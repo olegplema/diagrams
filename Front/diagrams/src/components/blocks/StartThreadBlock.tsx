@@ -2,6 +2,7 @@ import { NodeData } from '../../types/types';
 import { Handle, Position } from '@xyflow/react';
 import React from 'react';
 import CloseButton from '../buttons/CloseButton';
+import HandleWrapper from '../wrapper/HandleWrapper';
 
 interface IProps {
   data: NodeData;
@@ -14,7 +15,13 @@ const StartThreadBlock: React.FC<IProps> = ({ data }) => {
       <CloseButton onClick={data.deleteNode} />
 
       <div className="font-bold text-center">START_THREAD</div>
-      <Handle type="source" position={Position.Bottom} id="next" className="!w-3 !h-3 bg-blue-500" />
+
+      <HandleWrapper
+        type={'source'}
+        position={Position.Bottom}
+        id={'next'}
+        className={'!w-3 !h-3 bg-blue-500'}
+      />
     </div>
   );
 };
