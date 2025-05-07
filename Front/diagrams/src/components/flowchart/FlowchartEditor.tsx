@@ -27,26 +27,24 @@ const FlowchartEditor = () => {
 
   const onConnect = useCallback(
     (params: Connection) => {
-      const sourceNode = nodes.find((n) => n.id === params.source);
+      const sourceNode = nodes.find(n => n.id === params.source);
       if (!sourceNode) return;
 
       const { type } = sourceNode.data;
 
       const isDuplicate = edges.some(
-        (e) => e.source === params.source && e.sourceHandle === params.sourceHandle
+        e => e.source === params.source && e.sourceHandle === params.sourceHandle
       );
       if (isDuplicate) return;
 
       const edgeType =
-        type === BlockType.CONDITION || type === BlockType.WHILE
-          ? 'step'
-          : 'smoothstep';
+        type === BlockType.CONDITION || type === BlockType.WHILE ? 'step' : 'smoothstep';
 
       const edgeId = params.sourceHandle
         ? `${params.source}-${params.target}-${params.sourceHandle}`
         : `${params.source}-${params.target}`;
 
-      setEdges((eds) =>
+      setEdges(eds =>
         addEdge(
           {
             ...params,
@@ -62,8 +60,8 @@ const FlowchartEditor = () => {
 
   const deleteNode = useCallback(
     (nodeId: string) => {
-      setNodes((nds) => nds.filter((n) => n.id !== nodeId));
-      setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+      setNodes(nds => nds.filter(n => n.id !== nodeId));
+      setEdges(eds => eds.filter(e => e.source !== nodeId && e.target !== nodeId));
     },
     [setNodes, setEdges]
   );
@@ -82,33 +80,33 @@ const FlowchartEditor = () => {
           setVariable:
             type !== BlockType.END
               ? (variable: string) => {
-                setNodes((nds) =>
-                  nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, variable } } : n))
-                );
-              }
+                  setNodes(nds =>
+                    nds.map(n => (n.id === id ? { ...n, data: { ...n.data, variable } } : n))
+                  );
+                }
               : undefined,
           setExpression:
             type !== BlockType.END
               ? (expression: string) => {
-                setNodes((nds) =>
-                  nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, expression } } : n))
-                );
-              }
+                  setNodes(nds =>
+                    nds.map(n => (n.id === id ? { ...n, data: { ...n.data, expression } } : n))
+                  );
+                }
               : undefined,
           deleteNode: () => deleteNode(id),
         },
       };
-      setNodes((nds) => [...nds, newNode]);
-      setNodeIdCounter((prev) => prev + 1);
+      setNodes(nds => [...nds, newNode]);
+      setNodeIdCounter(prev => prev + 1);
     },
     [variables, setNodes, nodeIdCounter, deleteNode]
   );
 
   const handleGenerateCode = () => {
     // Find all START_THREAD nodes to identify thread starting points
-    const startThreadNodes = nodes.filter((n) => n.data.type === BlockType.START_THREAD);
+    const startThreadNodes = nodes.filter(n => n.data.type === BlockType.START_THREAD);
     // Get all nodes that aren't START_THREAD nodes
-    const regularNodes = nodes.filter((n) => n.data.type !== BlockType.START_THREAD);
+    const regularNodes = nodes.filter(n => n.data.type !== BlockType.START_THREAD);
 
     // Build a map of string IDs to numeric IDs for each thread
     const buildIdMap = (threadNodes: CustomNode[]) => {
@@ -121,18 +119,22 @@ const FlowchartEditor = () => {
 
     // Find node by ID in a thread
     const findNodeById = (threadNodes: CustomNode[], id: string) =>
-      threadNodes.find((n) => n.id === id);
+      threadNodes.find(n => n.id === id);
 
     // Get target node ID from source node and handle
-    const getTargetId = (sourceId: string, handle: string | null, idMap: { [key: string]: number }) => {
+    const getTargetId = (
+      sourceId: string,
+      handle: string | null,
+      idMap: { [key: string]: number }
+    ) => {
       const edge = edges.find(
-        (e) => e.source === sourceId && (handle ? e.sourceHandle === handle : true)
+        e => e.source === sourceId && (handle ? e.sourceHandle === handle : true)
       );
       return edge?.target && idMap[edge.target] ? idMap[edge.target] : undefined;
     };
 
     // Process each thread starting from a START_THREAD node
-    const threads = startThreadNodes.map((startNode) => {
+    const threads = startThreadNodes.map(startNode => {
       // Get all nodes reachable from this START_THREAD node
       const reachableNodes = new Set<string>();
       const stack = [startNode.id];
@@ -142,8 +144,8 @@ const FlowchartEditor = () => {
 
         // Find all outgoing edges from current node
         edges
-          .filter((e) => e.source === current)
-          .forEach((edge) => {
+          .filter(e => e.source === current)
+          .forEach(edge => {
             const targetId = edge.target;
             if (!reachableNodes.has(targetId)) {
               reachableNodes.add(targetId);
@@ -153,19 +155,21 @@ const FlowchartEditor = () => {
       }
 
       // Get all regular nodes that are part of this thread
-      const threadNodes = regularNodes.filter((n) => reachableNodes.has(n.id));
+      const threadNodes = regularNodes.filter(n => reachableNodes.has(n.id));
       const idMap = buildIdMap(threadNodes);
 
       // Map of while nodes to their info (body entry point, end node)
-      const whileNodesInfo: { [key: string]: { bodyEntryId: string; endNodeId: string; lastNodeIds?: string[] } } = {};
+      const whileNodesInfo: {
+        [key: string]: { bodyEntryId: string; endNodeId: string; lastNodeIds?: string[] };
+      } = {};
 
       // Find all while nodes in this thread
       threadNodes
-        .filter((n) => n.data.type === BlockType.WHILE)
-        .forEach((whileNode) => {
+        .filter(n => n.data.type === BlockType.WHILE)
+        .forEach(whileNode => {
           // Find the body entry edge
-          const bodyEdge = edges.find((e) => e.source === whileNode.id && e.sourceHandle === 'body');
-          const nextEdge = edges.find((e) => e.source === whileNode.id && e.sourceHandle === 'next');
+          const bodyEdge = edges.find(e => e.source === whileNode.id && e.sourceHandle === 'body');
+          const nextEdge = edges.find(e => e.source === whileNode.id && e.sourceHandle === 'next');
 
           if (bodyEdge && nextEdge) {
             whileNodesInfo[whileNode.id] = {
@@ -176,18 +180,18 @@ const FlowchartEditor = () => {
         });
 
       // For each while body, find the last node that connects back to the while node
-      Object.keys(whileNodesInfo).forEach((whileId) => {
+      Object.keys(whileNodesInfo).forEach(whileId => {
         const cycleBackEdges = edges.filter(
-          (e) => e.target === whileId && e.sourceHandle === 'next' && reachableNodes.has(e.source)
+          e => e.target === whileId && e.sourceHandle === 'next' && reachableNodes.has(e.source)
         );
 
         if (cycleBackEdges.length > 0) {
-          whileNodesInfo[whileId].lastNodeIds = cycleBackEdges.map((e) => e.source);
+          whileNodesInfo[whileId].lastNodeIds = cycleBackEdges.map(e => e.source);
         }
       });
 
       // Create flow nodes with proper numbering and connections
-      return threadNodes.map((node) => {
+      return threadNodes.map(node => {
         const baseNode: IFlowNode = {
           id: idMap[node.id],
           type: node.data.type as Exclude<BlockType, BlockType.START_THREAD>,
