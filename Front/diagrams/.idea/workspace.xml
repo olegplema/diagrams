@@ -5,15 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8504582e-ca37-4c77-88c4-844cbf71dc92" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../Back/Diagrams/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../Back/Diagrams/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/AssignBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/AssignBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/ConditionBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/ConditionBlock.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/blocks/InputBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/InputBlock.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/flowchart/FlowchartEditor.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/flowchart/FlowchartEditor.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/variable/VariableManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/variable/VariableManager.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/variable/VariableSelector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/variable/VariableSelector.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/variable/VariablesList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/variable/VariablesList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/PrintBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/PrintBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/StartThreadBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/StartThreadBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/blocks/WhileLoopBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/WhileLoopBlock.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/wrapper/HandleWrapper.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wrapper/HandleWrapper.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,23 +45,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/oleg/Documents/FIT/diagrams/Front/diagrams&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;npm.start.executor&quot;: &quot;Run&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.IDE.editor.colors.Diff &amp; Merge&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\danylo\\Desktop\\software-engineering\\diagrams\\Front\\diagrams\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "ref/blocks-refactoring",
+    "last_opened_file_path": "C:/Users/danylo/Desktop/software-engineering/diagrams/Front/diagrams",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "npm.start.executor": "Run",
+    "prettierjs.PrettierConfiguration.Package": "C:\\Users\\danylo\\AppData\\Roaming\\npm\\node_modules\\prettier",
+    "settings.editor.selected.configurable": "settings.javascript.prettier",
+    "ts.external.directory.path": "C:\\Users\\danylo\\Desktop\\software-engineering\\diagrams\\Front\\diagrams\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\danylo\Desktop\software-engineering\diagrams\Front\diagrams\src\types" />
