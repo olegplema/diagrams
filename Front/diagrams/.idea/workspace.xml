@@ -7,10 +7,7 @@
     <list default="true" id="8504582e-ca37-4c77-88c4-844cbf71dc92" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../../Back/Diagrams/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../Back/Diagrams/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/blocks/ConditionBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/ConditionBlock.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/blocks/EndBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/EndBlock.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/blocks/WhileLoopBlock.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/blocks/WhileLoopBlock.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/flowchart/FlowchartEditor.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/flowchart/FlowchartEditor.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/wrapper/HandleWrapper.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/wrapper/HandleWrapper.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -47,7 +44,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "ref/blocks-refactoring",
     "last_opened_file_path": "C:/Users/danylo/Desktop/software-engineering/diagrams/Front/diagrams",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",

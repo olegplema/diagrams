@@ -5,8 +5,8 @@ interface IProps {
   type: 'source' | 'target';
   position: Position;
   id: string;
-  label: string;
-  isVisible: boolean;
+  label?: string;
+  isVisible?: boolean;
   className?: string;
   labelClassName?: string;
   onConnect?: () => void;
@@ -17,7 +17,7 @@ const HandleWrapper: React.FC<IProps> = ({
   position,
   id,
   label,
-  isVisible,
+  isVisible = true,
   className,
   labelClassName,
   onConnect,
