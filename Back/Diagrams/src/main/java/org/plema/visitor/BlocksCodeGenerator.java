@@ -1,5 +1,6 @@
 package org.plema.visitor;
 
+import org.plema.DataType;
 import org.plema.models.*;
 
 import java.util.*;
@@ -107,7 +108,16 @@ public class BlocksCodeGenerator implements Visitor {
     @Override
     public Integer doInput(InputBlock inputBlock) {
         code.append("    ".repeat(Math.max(0, conditionLevel)));
-        code.append("                ").append(inputBlock.getVariable().getName()).append(" = scanner.nextInt();\n");
+        code.append("                ").append(inputBlock.getVariable().getName());
+        DataType varType = inputBlock.getVariable().getType();
+
+        switch (varType) {
+            case INT -> code.append(" = scanner.nextInt();\n");
+            case DOUBLE -> code.append(" = scanner.nextDouble();\n");
+            case BOOLEAN -> code.append(" = scanner.nextBoolean();\n");
+            case STRING -> code.append(" = scanner.nextLine();\n");
+        }
+
         return inputBlock.getNext();
     }
 
