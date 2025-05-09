@@ -40,7 +40,7 @@ public class DiagramController {
         try {
             Diagram diagram = context.get("convertedData");
             String clientSocketId = context.get("clientSocketId");
-            runDiagramService.runDiagram(diagram);
+            runDiagramService.runDiagram(diagram, clientSocketId);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             context.response()
