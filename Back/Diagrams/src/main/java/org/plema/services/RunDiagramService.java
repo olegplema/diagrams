@@ -3,6 +3,7 @@ package org.plema.services;
 import org.plema.Value;
 import org.plema.models.AbstractBlock;
 import org.plema.models.Diagram;
+import org.plema.vertx.WebSocketHandler;
 import org.plema.visitor.runner.BlocksCodeRunner;
 
 import java.util.HashMap;
@@ -11,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class RunDiagramService extends AbstractDiagramService{
+public class RunDiagramService extends AbstractDiagramService {
 
     public void runDiagram(Diagram diagram) {
         Map<String, Value> variableMap = new HashMap<>();
@@ -28,7 +29,10 @@ public class RunDiagramService extends AbstractDiagramService{
                 executor.execute(() -> {
                     try {
                         Map<Integer, AbstractBlock> blockMap = new HashMap<>();
-                        BlocksCodeRunner blocksCodeRunner = new BlocksCodeRunner(variableMap);
+                        BlocksCodeRunner blocksCodeRunner = new BlocksCodeRunner(
+                                variableMap,
+                                WebSocketHandler.getInstance()
+                        );
 
                         executeBlocks(thread, blockMap, blocksCodeRunner);
                     } finally {

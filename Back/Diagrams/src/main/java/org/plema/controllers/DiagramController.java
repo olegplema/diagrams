@@ -21,6 +21,12 @@ public class DiagramController {
                     .setStatusCode(201)
                     .putHeader("Content-Type", "application/json")
                     .end(JsonObject.mapFrom(new CodeResponse("Code generated", code)).encode());
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            context.response()
+                    .setStatusCode(400)
+                    .putHeader("Content-Type", "application/json")
+                    .end(JsonObject.mapFrom(new MessageResponse(e.getMessage())).encode());
         } catch (Exception e) {
             e.printStackTrace();
             context.response()
@@ -34,6 +40,12 @@ public class DiagramController {
         try {
             Diagram diagram = context.get("convertedData");
             runDiagramService.runDiagram(diagram);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            context.response()
+                    .setStatusCode(400)
+                    .putHeader("Content-Type", "application/json")
+                    .end(JsonObject.mapFrom(new MessageResponse(e.getMessage())).encode());
         } catch (Exception e) {
             e.printStackTrace();
             context.response()
@@ -41,11 +53,5 @@ public class DiagramController {
                     .putHeader("Content-Type", "application/json")
                     .end(JsonObject.mapFrom(new MessageResponse("Something went wrong")).encode());
         }
-
-        context.response()
-                .setStatusCode(201)
-                .putHeader("Content-Type", "application/json")
-                .end(JsonObject.mapFrom(new MessageResponse("Code generated")).encode());
-
     }
 }
