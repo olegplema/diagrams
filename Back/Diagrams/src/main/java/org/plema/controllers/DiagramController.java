@@ -39,6 +39,7 @@ public class DiagramController {
     public void runDiagram(RoutingContext context) {
         try {
             Diagram diagram = context.get("convertedData");
+            String clientSocketId = context.get("clientSocketId");
             runDiagramService.runDiagram(diagram);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();

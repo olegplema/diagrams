@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 public class RunDiagramService extends AbstractDiagramService {
 
-    public void runDiagram(Diagram diagram) {
+    public void runDiagram(Diagram diagram, String clientSocketId) {
         Map<String, Value> variableMap = new HashMap<>();
 
         for (var variable : diagram.variables()) {
@@ -31,7 +31,8 @@ public class RunDiagramService extends AbstractDiagramService {
                         Map<Integer, AbstractBlock> blockMap = new HashMap<>();
                         BlocksCodeRunner blocksCodeRunner = new BlocksCodeRunner(
                                 variableMap,
-                                WebSocketHandler.getInstance()
+                                WebSocketHandler.getInstance(),
+                                clientSocketId
                         );
 
                         executeBlocks(thread, blockMap, blocksCodeRunner);
