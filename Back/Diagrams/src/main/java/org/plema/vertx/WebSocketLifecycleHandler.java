@@ -1,4 +1,4 @@
-package org.plema.vertx.interfaces;
+package org.plema.vertx;
 
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.ServerWebSocketHandshake;

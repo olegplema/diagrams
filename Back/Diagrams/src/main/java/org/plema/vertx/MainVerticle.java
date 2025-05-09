@@ -6,7 +6,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
 import org.plema.controllers.DiagramController;
-import org.plema.vertx.interfaces.WebSocketLifecycleHandler;
 
 import java.util.HashSet;
 import java.util.Set;
