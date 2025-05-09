@@ -45,6 +45,12 @@ public class JsonToBlocksMiddleware implements Handler<RoutingContext> {
             threads.add(thread);
         }
 
+        String clientSocketId = json.getString("clientSocketId");
+
+        if (clientSocketId != null) {
+            routingContext.put("clientSocketId", clientSocketId);
+        }
+
         routingContext.put("convertedData", new Diagram(variables, threads));
         routingContext.next();
     }

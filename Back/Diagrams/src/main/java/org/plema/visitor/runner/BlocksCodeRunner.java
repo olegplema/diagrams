@@ -3,22 +3,27 @@ package org.plema.visitor.runner;
 import org.plema.DataType;
 import org.plema.Value;
 import org.plema.models.*;
+import org.plema.vertx.WebSocketMessageSender;
 import org.plema.visitor.Visitor;
 
 import java.util.Map;
 
 public class BlocksCodeRunner implements Visitor {
     private final Map<String, Value> variables;
+    private final WebSocketMessageSender ioHandler;
+    private final String clientId;
 
-    public BlocksCodeRunner(Map<String, Value> variables) {
+    public BlocksCodeRunner(Map<String, Value> variables, WebSocketMessageSender ioHandler, String clientId) {
         this.variables = variables;
+        this.ioHandler = ioHandler;
+        this.clientId = clientId;
     }
 
     @Override
     public Integer doPrint(PrintBlock printBlock) {
         String expression = printBlock.getExpression();
         String evaluated = replaceVariablesWithValues(expression, variables);
-        System.out.println(evaluated);
+        ioHandler.sendMessage(clientId, evaluated);
         return printBlock.getNext();
     }
 
@@ -58,13 +63,17 @@ public class BlocksCodeRunner implements Visitor {
 
     @Override
     public Integer doInput(InputBlock inputBlock) {
-        String varName = inputBlock.getVariable().getName();
-        String input = "5"; // use WebSocket TODO
-        Value value = isInteger(input) ? new Value(Integer.parseInt(input), DataType.INT) :
-                isDouble(input) ? new Value(Double.parseDouble(input), DataType.DOUBLE) :
-                        new Value(input, DataType.STRING);
-        variables.put(varName, value);
-        return inputBlock.getNext();
+        try {
+            String varName = inputBlock.getVariable().getName();
+            String input = ioHandler.sendAndWaitResult(clientId, "Input", "Enter value");
+            Value value = isInteger(input) ? new Value(Integer.parseInt(input), DataType.INT) :
+                    isDouble(input) ? new Value(Double.parseDouble(input), DataType.DOUBLE) :
+                            new Value(input, DataType.STRING);
+            variables.put(varName, value);
+            return inputBlock.getNext();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private String replaceVariablesWithValues(String expression, Map<String, Value> variables) {
