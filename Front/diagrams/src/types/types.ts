@@ -41,6 +41,7 @@ export interface IFlowNode {
 }
 
 export interface IRunCodeRequest {
+  clientSocketId: string;
   variables: Array<Variable>;
   threads: Array<Array<IFlowNode>>;
 }

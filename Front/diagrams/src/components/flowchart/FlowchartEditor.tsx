@@ -4,7 +4,6 @@ import {
   Connection,
   Controls,
   Edge,
-  MiniMap,
   ReactFlow,
   addEdge,
   useEdgesState,
@@ -13,30 +12,21 @@ import {
 import { BlockType } from '../../types/BlockType';
 import { CustomNode } from '../../types/types';
 import { useCodeGeneration } from '../../hooks/useCodeGeneration';
-import { useStartRunCode } from '../../hooks/useStartRunCode';
 import { useVariableStore } from '../../store/variableStore';
 import GenerateCodeModal from '../modal/CodeModal';
 import FlowNode from '../blocks/FlowBlock';
 import Sidebar from '../sidebar/Sidebar';
 import VariableManager from '../variable/VariableManager';
-import StartRunningCodeModal from '../modal/CodeRunnerModal';
 import { useFlowchartStore } from '../../store/useFlowchartStore';
+import CodeRunnerModal from '../modal/CodeRunnerModal';
 
 const FlowchartEditor = () => {
-  // Hooks
   const { generatedCodeData, generate } = useCodeGeneration();
-  const { startRunningCode } = useStartRunCode();
   const { variables } = useVariableStore();
 
-  // Local node state
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [nodeIdCounter, setNodeIdCounter] = React.useState(0);
-
-  // Update global state whenever local state changes
-  React.useEffect(() => {
-    useFlowchartStore.setState({ nodes, edges });
-  }, [nodes, edges]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -66,6 +56,8 @@ const FlowchartEditor = () => {
           eds
         )
       );
+
+      useFlowchartStore.setState({ nodes, edges });
     },
     [nodes, edges, setEdges]
   );
@@ -74,6 +66,7 @@ const FlowchartEditor = () => {
     (nodeId: string) => {
       setNodes(nds => nds.filter(n => n.id !== nodeId));
       setEdges(eds => eds.filter(e => e.source !== nodeId && e.target !== nodeId));
+      useFlowchartStore.setState({ nodes, edges });
     },
     [setNodes, setEdges]
   );
@@ -111,22 +104,18 @@ const FlowchartEditor = () => {
 
       setNodes(nds => [...nds, newNode]);
       setNodeIdCounter(prev => prev + 1);
+
+      useFlowchartStore.setState({ nodes, edges });
     },
     [variables, setNodes, nodeIdCounter, deleteNode]
   );
 
-  // Connect to JSON generator and code generators
   const { generateJSON } = useFlowchartStore();
 
   const handleGenerateCode = () => {
-    const jsonData = generateJSON();
+    const jsonData = generateJSON(nodes, edges);
     console.log(JSON.stringify(jsonData, null, 2));
     return generate(jsonData);
-  };
-
-  const handleStartRunningCode = () => {
-    const jsonData = generateJSON();
-    return startRunningCode(jsonData);
   };
 
   return (
@@ -135,7 +124,7 @@ const FlowchartEditor = () => {
       <div className="flex-1">
         <div className="p-4 bg-gray-200 flex gap-3">
           <GenerateCodeModal onClick={handleGenerateCode} generatedCodeData={generatedCodeData} />
-          <StartRunningCodeModal onClick={handleStartRunningCode} />
+          <CodeRunnerModal nodes={nodes} edges={edges} />
         </div>
         <ReactFlow
           nodes={nodes}
