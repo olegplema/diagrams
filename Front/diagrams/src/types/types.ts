@@ -5,7 +5,14 @@ import { VariableType } from './VariableType';
 // export type NodeType = 'start_thread' | 'input' | 'assign' | 'while' | 'condition' | 'print' | 'end';
 // export type VariableType = 'int' | 'double' | string;
 export type Variable = { name: string; type: VariableType };
-
+export type IdMap = Record<string, number>;
+export type WhileNodesIdMap = Record<string, WhileNodeInfo>;
+// Type for storing WHILE node connection information
+export interface WhileNodeInfo {
+  bodyEntryId: string;
+  endNodeId: string;
+  lastNodeIds?: string[];
+}
 export interface NodeData {
   type: BlockType;
   variable?: string;
@@ -32,6 +39,13 @@ export interface IFlowNode {
   falseBranch?: number;
   body?: number;
 }
+
+export interface IRunCodeRequest {
+  variables: Array<Variable>;
+  threads: Array<Array<IFlowNode>>;
+}
+
+export interface IRunCodeResponse {}
 
 export interface IGenerateCodeRequest {
   variables: Array<Variable>;
@@ -183,7 +197,7 @@ export enum HttpStatusCode {
 
   NOT_EXTENDED = 510,
 
-  NETWORK_AUTHENTICATION_REQUIRED = 511
+  NETWORK_AUTHENTICATION_REQUIRED = 511,
 }
 
 export interface IResponse<T = object | Array<object>> {
@@ -196,5 +210,5 @@ export enum CONFIRM_MESSAGES {
   DELETED = 'Deleted',
   COMPLITED = 'Complited',
   DONE = 'Done',
-  CONFIRMED = 'Confirmed'
+  CONFIRMED = 'Confirmed',
 }

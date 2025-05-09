@@ -3,6 +3,7 @@ import Modal from 'react-modal';
 import { Refractor, registerLanguage } from 'react-refractor';
 import java from 'refractor/lang/java';
 import 'prismjs/themes/prism-tomorrow.css';
+import { IoCodeSlash } from 'react-icons/io5';
 
 registerLanguage(java);
 Modal.setAppElement('#root');
@@ -39,9 +40,9 @@ const CodeModal = ({ generatedCodeData, onClick }: IProps) => {
     <div>
       <button
         onClick={handleClick}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+        className="bg-blue-500 text-white px-2 py-2 rounded hover:bg-blue-600 transition-colors"
       >
-        Show Code
+        <IoCodeSlash size={24} />
       </button>
 
       <Modal
