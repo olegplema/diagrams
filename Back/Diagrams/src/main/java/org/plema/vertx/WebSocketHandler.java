@@ -55,10 +55,10 @@ public class WebSocketHandler implements WebSocketLifecycleHandler, WebSocketMes
     @Override
     public void handleConnect(ServerWebSocketHandshake handshake) {
         if (handshake.path().equals("/connect-ws")) {
-            handshake.reject();
-        } else {
             System.out.println("Connecting to " + handshake.path());
             handshake.accept();
+        } else {
+            handshake.reject();
         }
     }
 

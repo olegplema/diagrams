@@ -42,11 +42,7 @@ public class RunDiagramService extends AbstractDiagramService {
                 });
             }
 
-            latch.await();
-
             System.out.println("All threads have completed execution.");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 }
