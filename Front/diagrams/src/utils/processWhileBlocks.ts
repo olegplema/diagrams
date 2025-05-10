@@ -16,24 +16,27 @@ export const processWhileNodes = (
       const bodyEdge = edges.find(e => e.source === whileNode.id && e.sourceHandle === 'body');
       const nextEdge = edges.find(e => e.source === whileNode.id && e.sourceHandle === 'next');
 
-      // Initialize the info object for this while node
-      whileNodesInfo[whileNode.id] = {
-        bodyEntryId: bodyEdge?.target || '', // Empty string if no body
-        endNodeId: nextEdge?.target || '', // Empty string if no next
-      };
-
-      // For empty while loops, explicitly handle the case
-      if (!bodyEdge && nextEdge) {
-        // This is an empty while loop - the next edge points directly to the end node
-        whileNodesInfo[whileNode.id].endNodeId = nextEdge.target;
+      // For empty while loops, we might only have a "next" edge
+      if (nextEdge) {
+        whileNodesInfo[whileNode.id] = {
+          bodyEntryId: bodyEdge?.target || nextEdge.target, // If no body, use next as placeholder
+          endNodeId: nextEdge.target,
+        };
+      } else if (bodyEdge) {
+        // If somehow we have a body but no next, still capture the body
+        whileNodesInfo[whileNode.id] = {
+          bodyEntryId: bodyEdge.target,
+          endNodeId: '', // Empty string to indicate no end pointer
+        };
       }
     });
 
   // Second pass: identify nodes that cycle back to while nodes
   Object.keys(whileNodesInfo).forEach(whileId => {
-    const cycleBackEdges = edges.filter(e => e.target === whileId && reachableNodes.has(e.source));
+    const cycleBackEdges = edges.filter(
+      e => e.target === whileId && e.sourceHandle === 'next' && reachableNodes.has(e.source)
+    );
 
-    // Remove the sourceHandle check to catch all edges coming back to the while node
     if (cycleBackEdges.length > 0) {
       whileNodesInfo[whileId].lastNodeIds = cycleBackEdges.map(e => e.source);
     }
