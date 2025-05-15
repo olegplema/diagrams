@@ -30,7 +30,7 @@ public class WebSocketHandler implements WebSocketLifecycleHandler, WebSocketMes
     public void sendMessage(String sessionId, String message) {
         ServerWebSocket webSocket = sessions.get(sessionId);
         if (webSocket != null) {
-            webSocket.writeTextMessage(message);
+            webSocket.writeTextMessage(JsonObject.mapFrom(new WebSocketReceive(sessionId, "print", message)).encode());
         }
     }
 
@@ -40,7 +40,7 @@ public class WebSocketHandler implements WebSocketLifecycleHandler, WebSocketMes
         ServerWebSocket webSocket = sessions.get(sessionId);
 
         if (webSocket != null) {
-            webSocket.writeTextMessage(JsonObject.mapFrom(new WebSocketHandler()).encode());
+            webSocket.writeTextMessage(JsonObject.mapFrom(new WebSocketReceive(sessionId, "input", message)).encode());
             CompletableFuture<String> future = new CompletableFuture<>();
             pendingResponses.put(sessionId, future);
 
@@ -82,6 +82,6 @@ public class WebSocketHandler implements WebSocketLifecycleHandler, WebSocketMes
             }
         });
 
-        webSocket.writeTextMessage(sessionId);
+        webSocket.writeTextMessage(JsonObject.mapFrom(new WebSocketReceive(sessionId, "session", sessionId)).encode());
     }
 }

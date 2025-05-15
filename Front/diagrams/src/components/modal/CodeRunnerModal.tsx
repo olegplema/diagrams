@@ -29,12 +29,11 @@ const CodeRunnerModal: React.FC<IProps> = ({ nodes, edges }) => {
   const { startRunningCode } = useStartRunCode();
   const socketRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [shouldSend, setShouldSend] = useState(false);
 
   useEffect(() => {
-    if (isOpen && !socketRef.current) {
-      console.log('Opening WebSocket connection...');
+    if (isOpen) {
       const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:8888/connect-ws';
-      console.log('WebSocket URL:', wsUrl);
 
       const ws = new WebSocket(wsUrl);
 
@@ -44,10 +43,9 @@ const CodeRunnerModal: React.FC<IProps> = ({ nodes, edges }) => {
       };
 
       ws.onclose = event => {
-        console.log('WebSocket closed with code:', event.code, 'reason:', event.reason);
         socketRef.current = null;
         setIsConnected(false);
-        setWaitingForInput(false); // Reset input state on close
+        setWaitingForInput(false);
         setTimeout(() => {
           if (isOpen) {
             console.log('Attempting to reconnect WebSocket...');
@@ -70,114 +68,67 @@ const CodeRunnerModal: React.FC<IProps> = ({ nodes, edges }) => {
       };
 
       socketRef.current = ws;
-    }
-
-    return () => {
+    } else {
       if (socketRef.current) {
         console.log('Closing WebSocket connection...');
         socketRef.current.close();
         socketRef.current = null;
         setIsConnected(false);
+        setSessionId(null);
       }
-    };
+    }
   }, [isOpen]);
 
-  const handleWebSocketMessage = (data: string) => {
-    console.log('Processing WebSocket message:', data, 'Current sessionId:', sessionId);
+  useEffect(() => {
+    if (shouldSend && sessionId) {
+      const { threads, variables } = generateJSON(nodes, edges);
+      startRunningCode({ clientSocketId: sessionId, threads, variables })
+        .then(() => console.log('Code execution request sent'))
+        .catch(err => console.error('Error starting code execution:', err));
+      setShouldSend(false);
+    }
+  }, [sessionId, shouldSend, setShouldSend]);
 
+  const handleWebSocketMessage = (data: string) => {
     try {
       const jsonData = JSON.parse(data);
-      console.log('Parsed JSON message:', jsonData);
 
-      // If sessionId is not set and the message contains a sessionId, set it
-      if (!sessionId && jsonData.sessionId) {
-        console.log('Setting sessionId from JSON:', jsonData.sessionId);
-        setSessionId(jsonData.sessionId);
-        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-          const { threads, variables } = generateJSON(nodes, edges);
-          console.log('Starting code execution with sessionId:', jsonData.sessionId);
-          startRunningCode({ clientSocketId: jsonData.sessionId, threads, variables })
-            .then(() => console.log('Code execution request sent'))
-            .catch(err => console.error('Error starting code execution:', err));
-        }
-      }
-
-      // Validate required fields
-      if (!jsonData.sessionId || !jsonData.type || !jsonData.message) {
-        console.log('Invalid JSON format, missing required fields:', jsonData);
-        setMessages(prev => [
-          ...prev,
-          { id: prev.length, content: `> Invalid JSON: ${JSON.stringify(jsonData)}` },
-        ]);
-        setCurrentMessageIndex(prev => prev + 1);
-        return;
-      }
-
-      // Check if sessionId matches
-      if (sessionId && jsonData.sessionId !== sessionId) {
-        console.log('Ignoring message for different sessionId:', jsonData.sessionId);
-        return;
-      }
-
-      // Handle message type
       const messageType = jsonData.type.toLowerCase();
-      console.log(`Handling message of type: ${messageType}`);
 
       if (messageType === 'input') {
-        console.log('Input request received:', jsonData.message);
         setMessages(prev => [...prev, { id: prev.length, content: `> ${jsonData.message}` }]);
         setCurrentMessageIndex(prev => prev + 1);
         setWaitingForInput(true);
-      } else if (messageType === 'output') {
-        console.log('Output message received:', jsonData.message);
+      } else if (messageType === 'print') {
         setMessages(prev => [...prev, { id: prev.length, content: `> ${jsonData.message}` }]);
         setCurrentMessageIndex(prev => prev + 1);
         setWaitingForInput(false);
+      } else if (messageType === 'session') {
+        setSessionId(jsonData.message);
       } else {
-        console.log('Unknown message type:', messageType);
         setMessages(prev => [
           ...prev,
           { id: prev.length, content: `> Unknown message type: ${messageType}` },
         ]);
         setCurrentMessageIndex(prev => prev + 1);
       }
-    } catch (e) {
-      // Handle non-JSON messages (e.g., plain text sessionId)
-      console.log('Message is not JSON, treating as plain text:', data);
-      if (!sessionId) {
-        console.log('Setting sessionId from plain text:', data);
-        setSessionId(data);
-        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-          const { threads, variables } = generateJSON(nodes, edges);
-          console.log('Starting code execution with sessionId:', data);
-          startRunningCode({ clientSocketId: data, threads, variables })
-            .then(() => console.log('Code execution request sent'))
-            .catch(err => console.error('Error starting code execution:', err));
-        }
-      } else {
-        setMessages(prev => [...prev, { id: prev.length, content: `> ${data}` }]);
-        setCurrentMessageIndex(prev => prev + 1);
-      }
-    }
+    } catch (e) {}
   };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, currentMessageIndex]);
 
-  const openModal = () => setIsOpen(true);
+  const openModal = async () => {
+    setIsOpen(true);
+    setShouldSend(true);
+  };
 
   const closeModal = () => {
     setIsOpen(false);
     setMessages([]);
     setCurrentMessageIndex(0);
     setInputValue('');
-    setWaitingForInput(false);
-    setSessionId(null);
-    if (socketRef.current) {
-      socketRef.current.close();
-      socketRef.current = null;
-    }
   };
 
   const handleClear = () => {
@@ -199,7 +150,6 @@ const CodeRunnerModal: React.FC<IProps> = ({ nodes, edges }) => {
       socketRef.current &&
       socketRef.current.readyState === WebSocket.OPEN
     ) {
-      console.log('Sending user input:', inputValue);
       socketRef.current.send(inputValue);
       setMessages(prev => [...prev, { id: prev.length, content: `< ${inputValue}` }]);
       setCurrentMessageIndex(prev => prev + 1);
