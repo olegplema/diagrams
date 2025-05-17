@@ -28,7 +28,7 @@ public class MainVerticle extends AbstractVerticle {
                 .allowedHeader("Authorization")
                 .allowCredentials(true));
 
-        Router diagramRouter = new DiagramRouter(new DiagramController()).createRouter(vertx);
+        Router diagramRouter = new DiagramRouter(new DiagramController(vertx)).createRouter(vertx);
         router.route("/*").subRouter(diagramRouter);
 
         WebSocketLifecycleHandler webSocketHandler = WebSocketHandler.getInstance();

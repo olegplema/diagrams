@@ -7,6 +7,8 @@ import org.plema.vertx.WebSocketMessageSender;
 import org.plema.visitor.Visitor;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class BlocksCodeRunner implements Visitor {
     private final Map<String, Value> variables;
@@ -65,11 +67,28 @@ public class BlocksCodeRunner implements Visitor {
     public Integer doInput(InputBlock inputBlock) {
         try {
             String varName = inputBlock.getVariable().getName();
-            String input = ioHandler.sendAndWaitResult(clientId, "Input", "Enter value");
+
+            // Send input request with prompt message
+            String promptMessage = varName + ":";
+
+            // Create a CompletableFuture to handle the input result
+            CompletableFuture<String> inputFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return ioHandler.sendAndWaitResult(clientId, "input", promptMessage);
+                } catch (ExecutionException | InterruptedException e) {
+                    throw new RuntimeException("Failed to get input", e);
+                }
+            });
+
+            // Wait for the input value
+            String input = inputFuture.get();
+
+            // Process the input value
             Value value = isInteger(input) ? new Value(Integer.parseInt(input), DataType.INT) :
                     isDouble(input) ? new Value(Double.parseDouble(input), DataType.DOUBLE) :
                             new Value(input, DataType.STRING);
             variables.put(varName, value);
+
             return inputBlock.getNext();
         } catch (Exception e) {
             return null;

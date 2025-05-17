@@ -38,17 +38,14 @@ public class WebSocketHandler implements WebSocketLifecycleHandler, WebSocketMes
     public String sendAndWaitResult(String sessionId, String type, String message)
             throws ExecutionException, InterruptedException {
         ServerWebSocket webSocket = sessions.get(sessionId);
-
         if (webSocket != null) {
-            webSocket.writeTextMessage(JsonObject.mapFrom(new WebSocketReceive(sessionId, "input", message)).encode());
             CompletableFuture<String> future = new CompletableFuture<>();
             pendingResponses.put(sessionId, future);
 
-            webSocket.textMessageHandler(future::complete);
+            webSocket.writeTextMessage(JsonObject.mapFrom(new WebSocketReceive(sessionId, "input", message)).encode());
 
             return future.get();
         }
-
         throw new IllegalStateException("WebSocket session not connected for sessionId: " + sessionId);
     }
 
@@ -72,10 +69,17 @@ public class WebSocketHandler implements WebSocketLifecycleHandler, WebSocketMes
         String sessionId = webSocket.remoteAddress().toString();
         sessions.put(sessionId, webSocket);
 
+        webSocket.textMessageHandler(message -> {
+            System.out.println("Received message from client: " + message);
+            CompletableFuture<String> future = pendingResponses.remove(sessionId);
+            if (future != null && !future.isDone()) {
+                future.complete(message);
+            }
+        });
+
         webSocket.closeHandler(v -> {
             System.out.println("WebSocket closed: " + sessionId);
             sessions.remove(sessionId);
-
             CompletableFuture<String> future = pendingResponses.remove(sessionId);
             if (future != null && !future.isDone()) {
                 future.completeExceptionally(new IllegalStateException("WebSocket closed before response"));

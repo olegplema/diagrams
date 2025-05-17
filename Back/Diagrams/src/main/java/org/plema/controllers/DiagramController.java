@@ -1,5 +1,6 @@
 package org.plema.controllers;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import org.plema.dtos.CodeResponse;
@@ -11,7 +12,11 @@ import org.plema.services.RunDiagramService;
 public class DiagramController {
 
     private final GenerateCodeService generateCodeService = new GenerateCodeService();
-    private final RunDiagramService runDiagramService = new RunDiagramService();
+    private final RunDiagramService runDiagramService;
+
+    public DiagramController(Vertx vertx) {
+        this.runDiagramService = new RunDiagramService(vertx);
+    }
 
     public void generateCode(RoutingContext context) {
         try {
