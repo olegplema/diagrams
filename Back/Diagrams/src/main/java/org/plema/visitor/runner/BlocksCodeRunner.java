@@ -22,7 +22,7 @@ public class BlocksCodeRunner implements Visitor {
     }
 
     @Override
-    public Integer doPrint(PrintBlock printBlock) {
+    public AbstractBlock doPrint(PrintBlock printBlock) {
         String expression = printBlock.getExpression();
         String evaluated = replaceVariablesWithValues(expression, variables);
         ioHandler.sendMessage(clientId, evaluated);
@@ -30,7 +30,7 @@ public class BlocksCodeRunner implements Visitor {
     }
 
     @Override
-    public Integer doAssign(AssignBlock assignBlock) {
+    public AbstractBlock doAssign(AssignBlock assignBlock) {
         String[] parts = assignBlock.getExpression().split("=", 2);
         String varName = parts[0].trim();
         if (!variables.containsKey(varName)) {
@@ -42,14 +42,14 @@ public class BlocksCodeRunner implements Visitor {
     }
 
     @Override
-    public Integer doCondition(ConditionBlock conditionBlock) {
+    public AbstractBlock doCondition(ConditionBlock conditionBlock) {
         String condition = conditionBlock.getExpression();
         boolean result = RpnHandler.evaluateCondition(condition, variables);
         return result ? conditionBlock.getTrueBranch() : conditionBlock.getFalseBranch();
     }
 
     @Override
-    public Integer doWhile(WhileBlock whileBlock) {
+    public AbstractBlock doWhile(WhileBlock whileBlock) {
         String condition = whileBlock.getExpression();
         if (RpnHandler.evaluateCondition(condition, variables)) {
             return whileBlock.getBody();
@@ -59,19 +59,17 @@ public class BlocksCodeRunner implements Visitor {
     }
 
     @Override
-    public Integer doEnd(EndBlock endBlock) {
+    public AbstractBlock doEnd(EndBlock endBlock) {
         return endBlock.getNext();
     }
 
     @Override
-    public Integer doInput(InputBlock inputBlock) {
+    public AbstractBlock doInput(InputBlock inputBlock) {
         try {
             String varName = inputBlock.getVariable().getName();
 
-            // Send input request with prompt message
             String promptMessage = varName + ":";
 
-            // Create a CompletableFuture to handle the input result
             CompletableFuture<String> inputFuture = CompletableFuture.supplyAsync(() -> {
                 try {
                     return ioHandler.sendAndWaitResult(clientId, "input", promptMessage);
@@ -80,10 +78,8 @@ public class BlocksCodeRunner implements Visitor {
                 }
             });
 
-            // Wait for the input value
             String input = inputFuture.get();
 
-            // Process the input value
             Value value = isInteger(input) ? new Value(Integer.parseInt(input), DataType.INT) :
                     isDouble(input) ? new Value(Double.parseDouble(input), DataType.DOUBLE) :
                             new Value(input, DataType.STRING);

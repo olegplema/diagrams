@@ -1,11 +1,9 @@
 package org.plema.services;
 
-import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import org.plema.Value;
-import org.plema.models.AbstractBlock;
-import org.plema.models.Diagram;
+import org.plema.dtos.Diagram;
 import org.plema.vertx.WebSocketHandler;
 import org.plema.visitor.runner.BlocksCodeRunner;
 
@@ -21,7 +19,7 @@ public class RunDiagramService extends AbstractDiagramService {
         this.vertx = vertx;
     }
 
-    public Future<Void> runDiagram(Diagram diagram, String clientSocketId) {
+    public void runDiagram(Diagram diagram, String clientSocketId) {
         Promise<Void> promise = Promise.promise();
 
         vertx.executeBlocking(blockingPromise -> {
@@ -39,7 +37,7 @@ public class RunDiagramService extends AbstractDiagramService {
             }
         });
 
-        return promise.future();
+        promise.future();
     }
 
     private void executeBlocks(Diagram diagram, String clientSocketId) {
@@ -54,13 +52,12 @@ public class RunDiagramService extends AbstractDiagramService {
         for (var thread : diagram.threads()) {
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 try {
-                    Map<Integer, AbstractBlock> blockMap = new HashMap<>();
                     BlocksCodeRunner blocksCodeRunner = new BlocksCodeRunner(
                             variableMap,
                             WebSocketHandler.getInstance(),
                             clientSocketId
                     );
-                    executeBlocks(thread, blockMap, blocksCodeRunner);
+                    executeBlocks(thread, blocksCodeRunner);
                 } catch (Exception e) {
                     System.err.println("Error executing thread: " + e.getMessage());
                     e.printStackTrace();

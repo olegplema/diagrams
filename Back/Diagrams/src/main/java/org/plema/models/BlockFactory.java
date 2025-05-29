@@ -19,47 +19,47 @@ public class BlockFactory {
         registerBlockType("input", json -> {
             String variableName = json.getString("variable");
             return new InputBlock.Builder()
-                .id(json.getInteger("id"))
-                .next(json.getInteger("next"))
-                .variable(variableMap.get(variableName))
-                .build();
+                    .id(json.getInteger("id"))
+                    .nextId(json.getInteger("next"))
+                    .variable(variableMap.get(variableName))
+                    .build();
         });
 
         registerBlockType("assign", json -> new AssignBlock.Builder()
                 .id(json.getInteger("id"))
-                .next(json.getInteger("next"))
                 .expression(json.getString("expression"))
+                .nextId(json.getInteger("next"))
                 .build());
 
         registerBlockType("condition", json -> new ConditionBlock.Builder()
                 .id(json.getInteger("id"))
-                .next(json.getInteger("next"))
                 .expression(json.getString("expression"))
-                .trueBranch(json.getInteger("trueBranch"))
-                .falseBranch(json.getInteger("falseBranch", null))
+                .trueBranchId(json.getInteger("trueBranch"))
+                .falseBranchId(json.getInteger("falseBranch"))
+                .nextId(json.getInteger("next"))
                 .build());
 
         registerBlockType("print", json -> new PrintBlock.Builder()
                 .id(json.getInteger("id"))
-                .next(json.getInteger("next"))
                 .expression(json.getString("expression"))
+                .nextId(json.getInteger("next"))
                 .build());
 
         registerBlockType("while", json -> new WhileBlock.Builder()
                 .id(json.getInteger("id"))
-                .next(json.getInteger("next"))
                 .expression(json.getString("expression"))
-                .body(json.getInteger("body"))
+                .nextId(json.getInteger("next"))
+                .bodyId(json.getInteger("body"))
                 .build());
 
         registerBlockType("end_condition", json -> new EndBlock.Builder()
                 .id(json.getInteger("id"))
-                .next(json.getInteger("next", null))
+                .nextId(json.getInteger("next"))
                 .build());
 
         registerBlockType("end", json -> new EndBlock.Builder()
                 .id(json.getInteger("id"))
-                .next(json.getInteger("next", null))
+                .nextId(json.getInteger("next"))
                 .build());
     }
 

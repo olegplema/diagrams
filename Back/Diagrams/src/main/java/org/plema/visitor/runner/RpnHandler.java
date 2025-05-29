@@ -21,7 +21,6 @@ class RpnHandler {
             Map.entry(">=", 0)
     );
 
-    private static final Set<String> LOGICAL_OPERATORS = Set.of("&&", "||");
     private static final Set<String> COMPARISON_OPERATORS = Set.of("==", "!=", "<", "<=", ">", ">=");
     private static final Set<String> BOOLEAN_LITERALS = Set.of("true", "false");
 

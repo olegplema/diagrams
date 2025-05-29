@@ -5,20 +5,21 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import org.plema.DataType;
-import org.plema.models.AbstractBlock;
-import org.plema.models.BlockFactory;
-import org.plema.models.Diagram;
-import org.plema.models.Variable;
+import org.plema.dtos.Diagram;
+import org.plema.models.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class JsonToBlocksMiddleware implements Handler<RoutingContext> {
 
     @Override
     public void handle(RoutingContext routingContext) {
         List<Variable> variables = new ArrayList<>();
-        List<List<AbstractBlock>> threads = new ArrayList<>();
+        List<AbstractBlock> threads = new ArrayList<>();
+        Map<Integer, AbstractBlock> blockMap = new HashMap<>();
 
         JsonObject json = routingContext.body().asJsonObject();
 
@@ -33,16 +34,52 @@ public class JsonToBlocksMiddleware implements Handler<RoutingContext> {
 
         BlockFactory blockFactory = new BlockFactory(variables);
         JsonArray threadsJson = json.getJsonArray("threads");
+
         for (Object t : threadsJson) {
             JsonArray threadJson = (JsonArray) t;
-            List<AbstractBlock> thread = new ArrayList<>();
 
             for (Object b : threadJson) {
                 JsonObject blockJson = (JsonObject) b;
-
-                thread.add(blockFactory.createBlock(blockJson));
+                AbstractBlock currentBlock = blockFactory.createBlock(blockJson);
+                blockMap.put(currentBlock.getId(), currentBlock);
             }
-            threads.add(thread);
+        }
+
+        for (AbstractBlock block : blockMap.values()) {
+            Integer nextId = block.getNextId();
+            if (nextId != null) {
+                block.setNext(blockMap.get(nextId));
+            }
+
+            if (block instanceof ConditionBlock conditionBlock) {
+                Integer trueBranchId = conditionBlock.getTrueBranchId();
+                Integer falseBranchId = conditionBlock.getFalseBranchId();
+
+                if (trueBranchId != null) {
+                    conditionBlock.setTrueBranch(blockMap.get(trueBranchId));
+                }
+
+                if (falseBranchId != null) {
+                    conditionBlock.setFalseBranch(blockMap.get(falseBranchId));
+                }
+            } else if (block instanceof WhileBlock whileBlock) {
+                Integer bodyId = whileBlock.getBodyId();
+                if (bodyId != null) {
+                    whileBlock.setBody(blockMap.get(bodyId));
+                }
+            }
+        }
+
+        for (Object t : threadsJson) {
+            JsonArray threadJson = (JsonArray) t;
+            if (!threadJson.isEmpty()) {
+                JsonObject firstBlockJson = threadJson.getJsonObject(0);
+                Integer firstBlockId = firstBlockJson.getInteger("id");
+                AbstractBlock firstBlock = blockMap.get(firstBlockId);
+                if (firstBlock != null) {
+                    threads.add(firstBlock);
+                }
+            }
         }
 
         String clientSocketId = json.getString("clientSocketId");
@@ -51,7 +88,7 @@ public class JsonToBlocksMiddleware implements Handler<RoutingContext> {
             routingContext.put("clientSocketId", clientSocketId);
         }
 
-        routingContext.put("convertedData", new Diagram(variables, threads));
+        routingContext.put("convertedData", new Diagram(variables, threads, blockMap));
         routingContext.next();
     }
 }

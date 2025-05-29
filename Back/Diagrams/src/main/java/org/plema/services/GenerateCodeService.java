@@ -1,7 +1,6 @@
 package org.plema.services;
 
-import org.plema.models.AbstractBlock;
-import org.plema.models.Diagram;
+import org.plema.dtos.Diagram;
 import org.plema.models.Variable;
 import org.plema.visitor.BlocksCodeGenerator;
 
@@ -12,7 +11,6 @@ public class GenerateCodeService extends AbstractDiagramService {
 
     public String generateCode(Diagram diagram) {
         StringBuilder code = new StringBuilder();
-        Map<Integer, AbstractBlock> blockMap = new HashMap<>();
 
         code.append("import java.util.Scanner;\n");
         code.append("import java.util.concurrent.locks.ReentrantLock;\n\n");
@@ -37,14 +35,13 @@ public class GenerateCodeService extends AbstractDiagramService {
             code.append("    static class ").append(threadName).append(" extends Thread {\n");
             code.append("        public void run() {\n");
             code.append("            try {\n");
-            BlocksCodeGenerator blocksGenerator = new BlocksCodeGenerator(code, blockMap);
-            executeBlocks(thread, blockMap, blocksGenerator);
+            BlocksCodeGenerator blocksGenerator = new BlocksCodeGenerator(code, diagram.blockMap());
+            executeBlocks(thread, blocksGenerator);
             code.append("            } catch (Throwable t) {\n");
             code.append("                System.err.println(t);\n");
             code.append("            }\n");
             code.append("        }\n");
             code.append("    }\n\n");
-            blockMap.clear();
         }
 
         code.append("    public static void main(String[] args) {\n");

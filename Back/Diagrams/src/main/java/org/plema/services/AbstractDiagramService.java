@@ -6,17 +6,12 @@ import org.plema.visitor.Visitor;
 import java.util.List;
 import java.util.Map;
 
-abstract class AbstractDiagramService {
+public abstract class AbstractDiagramService {
 
-    protected void executeBlocks(List<AbstractBlock> blocks, Map<Integer, AbstractBlock> blockMap, Visitor visitor) {
-        Integer currentBlockId = 1;
-        for (AbstractBlock block : blocks) {
-            blockMap.put(block.getId(), block);
-        }
-
-        while (blockMap.containsKey(currentBlockId)) {
-            AbstractBlock block = blockMap.get(currentBlockId);
-            currentBlockId = block.doVisitor(visitor);
+    protected void executeBlocks(AbstractBlock firstBlock, Visitor visitor) {
+        AbstractBlock currentBlock = firstBlock;
+        while (currentBlock != null) {
+            currentBlock = currentBlock.doVisitor(visitor);
         }
     }
 }

@@ -8,7 +8,7 @@ public class AssignBlock extends ExpressionBlock{
     }
 
     @Override
-    public Integer doVisitor(Visitor v) {
+    public AbstractBlock doVisitor(Visitor v) {
         return v.doAssign(this);
     }
 
