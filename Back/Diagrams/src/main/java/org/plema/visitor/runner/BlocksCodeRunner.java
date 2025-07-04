@@ -68,10 +68,8 @@ public class BlocksCodeRunner implements Visitor {
         try {
             String varName = inputBlock.getVariable().getName();
 
-            // Send input request with prompt message
             String promptMessage = varName + ":";
 
-            // Create a CompletableFuture to handle the input result
             CompletableFuture<String> inputFuture = CompletableFuture.supplyAsync(() -> {
                 try {
                     return ioHandler.sendAndWaitResult(clientId, "input", promptMessage);
@@ -80,10 +78,8 @@ public class BlocksCodeRunner implements Visitor {
                 }
             });
 
-            // Wait for the input value
             String input = inputFuture.get();
 
-            // Process the input value
             Value value = isInteger(input) ? new Value(Integer.parseInt(input), DataType.INT) :
                     isDouble(input) ? new Value(Double.parseDouble(input), DataType.DOUBLE) :
                             new Value(input, DataType.STRING);
@@ -144,8 +140,8 @@ public class BlocksCodeRunner implements Visitor {
 
     private String getValueAsString(Value value) {
         return switch (value.type()) {
-            case DataType.INT, DataType.DOUBLE, DataType.BOOLEAN -> String.valueOf(value.value());
-            case DataType.STRING -> "\"" + value.value() + "\"";
+            case INT, DOUBLE, BOOLEAN -> String.valueOf(value.value());
+            case STRING -> "\"" + value.value() + "\"";
         };
     }
 

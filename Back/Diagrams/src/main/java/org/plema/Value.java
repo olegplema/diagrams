@@ -24,7 +24,6 @@ public record Value(Object value, DataType type) {
         } else if (isDouble()) {
             return ((Double) value).intValue();
         } else if (isBoolean()) {
-            // Конвертація з boolean в int (true = 1, false = 0)
             return ((Boolean) value) ? 1 : 0;
         } else if (isString()) {
             try {
@@ -42,7 +41,6 @@ public record Value(Object value, DataType type) {
         } else if (isInt()) {
             return ((Integer) value).doubleValue();
         } else if (isBoolean()) {
-            // Конвертація з boolean в double (true = 1.0, false = 0.0)
             return ((Boolean) value) ? 1.0 : 0.0;
         } else if (isString()) {
             try {
@@ -62,13 +60,10 @@ public record Value(Object value, DataType type) {
         if (isBoolean()) {
             return (Boolean) value;
         } else if (isInt()) {
-            // Числа, відмінні від нуля, вважаються true
             return (Integer) value != 0;
         } else if (isDouble()) {
-            // Числа, відмінні від нуля, вважаються true
             return (Double) value != 0.0;
         } else if (isString()) {
-            // Рядок "true" (без урахування регістру) вважається true
             return Boolean.parseBoolean((String) value);
         }
         throw new ClassCastException("Cannot cast " + type + " to boolean");
@@ -93,12 +88,10 @@ public record Value(Object value, DataType type) {
             return value.equals(other.value);
         }
 
-        // Handle numeric type comparison
         if ((isInt() || isDouble()) && (other.isInt() || other.isDouble())) {
             return asDouble() == other.asDouble();
         }
 
-        // Handle boolean comparison with numbers (0 = false, non-zero = true)
         if (isBoolean() && (other.isInt() || other.isDouble())) {
             return asBoolean() == (other.asDouble() != 0);
         }

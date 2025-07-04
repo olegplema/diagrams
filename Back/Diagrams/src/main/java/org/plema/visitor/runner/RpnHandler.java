@@ -87,7 +87,7 @@ class RpnHandler {
             }
         }
 
-        boolean result = evaluateCondition(tokens.getFirst(), variables);
+        boolean result = evaluateCondition(tokens.get(0), variables);
 
         for (i = 1; i < tokens.size(); i += 2) {
             if (i + 1 >= tokens.size()) {
